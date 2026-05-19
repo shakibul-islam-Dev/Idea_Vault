@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
+
 import Nav from "@/Components/Nav/Nav";
 // Real relative path use kora holo jeno Turbopack exact direction pay
 
@@ -34,7 +35,7 @@ export default function RootLayout({ children }) {
       className={`${poppins.variable} ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="bg-white text-black dark:bg-[#0a0c10] dark:text-gray-200 transition-colors duration-300 min-h-screen flex flex-col font-sans">
+      <body className="bg-white text-black dark:bg-[#0a0c10] dark:text-gray-200 transition-colors duration-300  flex flex-col font-sans">
         <ThemeProvider>
           <Nav />
           <main className="flex-1 w-full">{children}</main>
