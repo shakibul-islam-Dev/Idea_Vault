@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button, Card, Input, Form } from "@heroui/react";
 import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
-import { authClient } from "../lib/auth-client";
+import { authClient } from "../../lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -14,7 +14,7 @@ export default function Registration() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
 
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const callbackUrl = searchParams.get("callbackUrl");
 
   const submit = async (e) => {
     e.preventDefault();

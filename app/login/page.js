@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button, Card, Form, Input } from "@heroui/react";
 import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
-import { authClient } from "../lib/auth-client";
+import { authClient } from "../../lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

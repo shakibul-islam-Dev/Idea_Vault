@@ -1,9 +1,9 @@
-import Idea from "@/Components/Idea/Idea";
-
 export default function Home() {
   return (
     <>
-      <main></main>
+      <main>
+        <h1>Home</h1>
+      </main>
     </>
   );
 }
