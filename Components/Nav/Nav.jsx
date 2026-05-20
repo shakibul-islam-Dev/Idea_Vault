@@ -7,6 +7,7 @@ import { HiMenuAlt3 } from "react-icons/hi";
 import { RxCross2, RxAvatar } from "react-icons/rx";
 import { motion, AnimatePresence } from "framer-motion";
 import ThemeToggle from "../ThemeToggle/ThemeToggle";
+import { FaSignOutAlt } from "react-icons/fa";
 
 import { authClient } from "@/lib/auth-client";
 import { ToastContainer, toast } from "react-toastify";
@@ -88,9 +89,10 @@ const Nav = () => {
                   });
                 }}
                 size="sm"
+                title="Sign Out"
                 className="bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white text-xs transition-all"
               >
-                Sign Out
+                <FaSignOutAlt /> SignOut
               </Button>
             </>
           ) : (
@@ -102,7 +104,7 @@ const Nav = () => {
               <Link href="/login">
                 <Button
                   size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                  className="bg-blue-300 hover:bg-blue-700 text-white text-xs"
                 >
                   Login
                 </Button>
@@ -110,7 +112,7 @@ const Nav = () => {
               <Link href="/registration">
                 <Button
                   size="sm"
-                  className="bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 text-xs"
+                  className="bg-blue-300 hover:bg-blue-700   text-neutral-800 dark:text-neutral-200 text-xs"
                 >
                   Sign Up
                 </Button>

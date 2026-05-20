@@ -5,3 +5,38 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 }
+/* app/globals.css এ নিচে যুক্ত করুন */
+
+.custom-swiper-container .swiper-button-next,
+.custom-swiper-container .swiper-button-prev {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+}
+
+.custom-swiper-container .swiper-button-next:hover,
+.custom-swiper-container .swiper-button-prev:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.custom-swiper-container .swiper-button-next:after,
+.custom-swiper-container .swiper-button-prev:after {
+  font-size: 20px !important;
+  font-weight: bold;
+}
+
+.custom-swiper-container .swiper-pagination-bullet-active {
+  background: #3b82f6 !important;
+  width: 24px !important;
+  border-radius: 4px !important;
+}
+
+.custom-swiper-container .swiper-pagination-bullet {
+  background: #ffffff;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}

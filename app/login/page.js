@@ -16,7 +16,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = searchParams.get("callbackUrl");
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -30,7 +30,8 @@ export default function Login() {
       const { error } = await authClient.signIn.email({
         email,
         password,
-        callbackURL: callbackUrl,
+        callbackURL: callbackUrl || "/",
+        callbackOnNavigate: true,
       });
 
       if (error) {
@@ -51,7 +52,8 @@ export default function Login() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: callbackUrl,
+        callbackURL: callbackUrl || "/",
+        callbackOnNavigate: true,
       });
       // Do not turn off loading state here; let the page transition naturally
     } catch (err) {
