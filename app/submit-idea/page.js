@@ -1,6 +1,7 @@
 "use client";
+import IdeaForm from "@/Components/IdeaForm/IdeaForm";
 import React from "react";
-import IdeaForm from "@/components/IdeaForm";
+
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
