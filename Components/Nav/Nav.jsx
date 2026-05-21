@@ -16,10 +16,8 @@ import { RxCross2, RxAvatar } from "react-icons/rx";
 import { motion, AnimatePresence } from "framer-motion";
 import ThemeToggle from "../ThemeToggle/ThemeToggle";
 
-// ১. কারেন্ট পেজের পাথ ট্র্যাক করার জন্য usePathname ইম্পোর্ট করা হলো
 import { usePathname } from "next/navigation";
 
-// Gravity UI Icons
 import { ArrowRightFromSquare, Gear, Persons } from "@gravity-ui/icons";
 
 import { authClient } from "@/lib/auth-client";
@@ -333,7 +331,6 @@ const Nav = () => {
                         <Input
                           type="email"
                           placeholder="Enter your email"
-                          defaultValue={user.email || ""}
                           className="bg-neutral-100 dark:bg-neutral-800/50 cursor-not-allowed"
                         />
                       </TextField>
