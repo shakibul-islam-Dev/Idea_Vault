@@ -16,12 +16,12 @@ const Sliders = () => {
   const [slidesData, setSlidesData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // API থেকে ডেটা ফেচ করা
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
 
   useEffect(() => {
     const fetchSliders = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/idea");
+        const res = await fetch(`${serverUrl}/api/idea`);
         const data = await res.json();
         setSlidesData(data.slice(0, 3));
       } catch (error) {
@@ -32,7 +32,7 @@ const Sliders = () => {
     };
 
     fetchSliders();
-  }, []);
+  }, [serverUrl]);
 
   if (loading) {
     return (

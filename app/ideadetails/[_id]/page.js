@@ -8,20 +8,31 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
+// আপনার কমেন্ট সিস্টেম বা সার্ভার অ্যাকশন ফাইলটি ইমপোর্ট করুন
+import { CommentSystem } from "./CommentSystem";
+
 const IdeaDetailsPage = async ({ params }) => {
-  // ১. params-কে সঠিকভাবে await করা হয়েছে যাতে আইডি রিড করতে পারে
   const resolvedParams = await params;
   const id = resolvedParams?._id || resolvedParams?.id;
 
   if (!id) notFound();
 
   const requestHeaders = await headers();
-  const { token } = await auth.api.getToken({
+
+  // ১. সেশন থেকে লগইন থাকা ইউজারের ডেটা আনা হলো
+  const session = await auth.api.getSession({
     headers: requestHeaders,
   });
 
-  // ২. এখানে ভুল কোড ${_id} পরিবর্তন করে সঠিক ভেরিয়েবল ${id} বসানো হয়েছে
-  const res = await fetch(`http://localhost:5000/api/idea/${id}`, {
+  // ২. ইউজার অবজেক্ট তৈরি (লগইন না থাকলে null থাকবে)
+  const loggedInUser = session?.user ? { name: session.user.name } : null;
+
+  const { token } = await auth.api.getToken({
+    headers: requestHeaders,
+  });
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
+
+  const res = await fetch(`${serverUrl}/api/idea/${id}`, {
     headers: {
       authorization: `Bearer ${token}`,
     },
@@ -45,6 +56,8 @@ const IdeaDetailsPage = async ({ params }) => {
     problemStatement,
     proposedSolution,
   } = data;
+
+  const allComments = await CommentSystem();
 
   return (
     <section className="container mx-auto p-6 max-w-4xl space-y-6">
@@ -155,7 +168,7 @@ const IdeaDetailsPage = async ({ params }) => {
         </div>
       </Card>
 
-      <CommentUI />
+      <CommentUI initialComments={allComments} currentUser={loggedInUser} />
     </section>
   );
 };

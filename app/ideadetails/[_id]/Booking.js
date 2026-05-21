@@ -10,7 +10,7 @@ export async function createBooking(params) {
 
     const { _id, ideaTitle, category, tags, estimatedBudget } = ideaData;
 
-    const res = await fetch(`http://localhost:4000/api/ideadetails`, {
+    const res = await fetch(`http://localhost:5000/api/ideadetails`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

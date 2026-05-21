@@ -7,9 +7,9 @@ const IdeaPage = async ({ searchParams }) => {
   const resolvedParams = await searchParams;
   const currentSearch = resolvedParams?.search || "";
   const currentCategory = resolvedParams?.category || "";
-
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
   // ব্যাকএন্ড API-তে কোয়েরি প্যারামিটার পাস করা
-  const fetchUrl = `http://localhost:5000/api/idea?search=${encodeURIComponent(currentSearch)}&category=${encodeURIComponent(currentCategory)}`;
+  const fetchUrl = `${serverUrl}/api/idea?search=${encodeURIComponent(currentSearch)}&category=${encodeURIComponent(currentCategory)}`;
 
   let datas = [];
   try {

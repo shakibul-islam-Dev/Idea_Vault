@@ -38,9 +38,9 @@ export default function IdeaForm() {
 
     newIdea.category = selectedCategory;
     newIdea.tags = tags;
-
+    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
     try {
-      const res = await fetch(`http://localhost:5000/api/idea`, {
+      const res = await fetch(`${serverUrl}/api/idea`, {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify(newIdea),

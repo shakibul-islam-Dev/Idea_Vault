@@ -1,7 +1,8 @@
 import React from "react";
 
 const TrendingIdea = async () => {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/idea`, {
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
+  const res = await fetch(`${serverUrl}/api/idea`, {
     cache: "no-store",
   });
   const datas = await res.json();

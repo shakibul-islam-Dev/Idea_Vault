@@ -1,88 +1,236 @@
-// app/blog/CommentUI.js
-export default function CommentUI() {
+"use client";
+import { useState } from "react";
+import { Button, TextArea } from "@heroui/react";
+import { Input } from "@heroui/react";
+
+import { Alert } from "@heroui/react";
+import {
+  addComment,
+  updateComment,
+  deleteComment,
+} from "@/app/ideadetails/[_id]/CommentSystem";
+
+export default function CommentUI({
+  initialComments = [],
+  currentUser = null,
+}) {
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState("");
+
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success",
+  });
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: "", type: "success" });
+    }, 3000);
+  };
+
+  const handleEditInit = (comment) => {
+    setEditingId(comment._id);
+    setEditText(comment.text);
+  };
+
+  const handleUpdateSave = async (id) => {
+    if (!editText.trim()) {
+      showToast("Comment cannot be empty!", "danger");
+      return;
+    }
+    try {
+      await updateComment(id, editText);
+      setEditingId(null);
+      setEditText("");
+      showToast("Comment updated successfully!", "success");
+    } catch (err) {
+      showToast("Failed to update comment.", "danger");
+    }
+  };
+
+  const triggerDelete = (id) => {
+    setConfirmDeleteId(id);
+  };
+
+  const executeDelete = async () => {
+    if (!confirmDeleteId) return;
+    try {
+      await deleteComment(confirmDeleteId);
+      showToast("Comment deleted successfully!", "success");
+    } catch (err) {
+      showToast("Failed to delete comment.", "danger");
+    } finally {
+      setConfirmDeleteId(null);
+    }
+  };
+
   return (
-    <div className="max-w-2xl mx-auto my-10 p-6 bg-gray-50 rounded-xl shadow-sm border border-gray-100 font-sans">
-      <h3 className="text-xl font-bold text-gray-800 border-b border-gray-200 pb-3 mb-6">
-        কমেন্ট সেকশন (২)
-      </h3>
-
-      {/* কমেন্ট করার ফর্ম UI */}
-      <form className="flex flex-col gap-4 mb-8">
-        <input
-          type="text"
-          placeholder="আপনার নাম"
-          required
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
-        />
-        <textarea
-          placeholder="কমেন্ট লিখুন..."
-          required
-          className="w-full px-4 py-2.5 min-h-[90px] rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white resize-y"
-        />
-        <button
-          type="button"
-          className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg transition-colors duration-200 shadow-sm"
-        >
-          কমেন্ট করুন
-        </button>
-      </form>
-
-      {/* কমেন্ট লিস্ট UI */}
-      <div className="flex flex-col gap-4">
-        {/* ১ নম্বর কমেন্ট (সাধারণ ভিউ) */}
-        <div className="p-5 bg-white rounded-xl border border-gray-200 shadow-sm transition-all hover:border-gray-300">
-          <div className="flex justify-between items-center mb-2.5">
-            <span className="font-bold text-gray-800 text-sm">রহিম</span>
-            <span className="text-xs text-gray-400">21 May 2026, 6:14 AM</span>
-          </div>
-          <p className="text-gray-600 text-sm leading-relaxed mb-4">
-            দারুণ একটি ব্লগ পোস্ট! অনেক কিছু জানতে পারলাম।
-          </p>
-          <div className="flex gap-4 text-xs font-semibold">
-            <button
-              type="button"
-              className="text-blue-600 hover:text-blue-800 transition-colors"
-            >
-              Edit
-            </button>
-            <button
-              type="button"
-              className="text-red-500 hover:text-red-700 transition-colors"
-            >
-              Delete
-            </button>
-          </div>
+    <div className="relative container mx-auto my-10 p-6 bg-gray-50 dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 font-sans">
+      {toast.show && (
+        <div className="fixed top-5 right-5 z-50 animate-appearance-in max-w-sm">
+          <Alert color={toast.type} title={toast.message} variant="faded" />
         </div>
+      )}
 
-        {/* ২ নম্বর কমেন্ট (এডিট মোড দেখতে কেমন হবে তার UI) */}
-        <div className="p-5 bg-white rounded-xl border border-gray-200 shadow-sm">
-          <div className="flex justify-between items-center mb-3">
-            <span className="font-bold text-gray-800 text-sm">করিম</span>
-            <span className="text-xs text-gray-400">21 May 2026, 6:15 AM</span>
-          </div>
-
-          {/* এডিট বক্স UI */}
-          <div className="flex flex-col gap-3">
-            <textarea
-              defaultValue="নেক্সট জেএস দিয়ে কমেন্ট সিস্টেম বানানো এখন অনেক সহজ।"
-              className="w-full p-3 text-sm rounded-lg border border-blue-500 focus:outline-none ring-2 ring-blue-100 bg-white resize-y"
-            />
-            <div className="flex gap-2">
-              <button
-                type="button"
-                className="px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded transition-colors"
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                className="px-4 py-1.5 bg-gray-500 hover:bg-gray-600 text-white text-xs font-semibold rounded transition-colors"
+      {confirmDeleteId && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-6 shadow-xl border border-gray-150 dark:border-gray-700 animate-appearance-in">
+            <h4 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-2">
+              Are you sure?
+            </h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
+              This action will permanently delete your comment.
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button
+                size="sm"
+                variant="light"
+                className="cursor-pointer"
+                onPress={() => setConfirmDeleteId(null)}
               >
                 Cancel
-              </button>
+              </Button>
+              <Button
+                size="sm"
+                color="danger"
+                className="cursor-pointer font-semibold shadow-md"
+                onPress={executeDelete}
+              >
+                Delete
+              </Button>
             </div>
           </div>
         </div>
+      )}
+
+      <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 border-b border-gray-200 dark:border-gray-800 pb-3 mb-6">
+        Comment section ({initialComments.length})
+      </h3>
+
+      <form
+        action={async (formData) => {
+          try {
+            await addComment(formData);
+            document.getElementById("comment-submission-form").reset();
+            showToast("Comment posted successfully!", "success");
+          } catch (err) {
+            showToast("Failed to post comment.", "danger");
+          }
+        }}
+        id="comment-submission-form"
+        className="flex flex-col gap-4 mb-8"
+      >
+        <Input
+          type="text"
+          name="author"
+          label="Your Name"
+          variant="bordered"
+          defaultValue={currentUser?.name || ""}
+          isreadOnly={!!currentUser?.name}
+          className={currentUser?.name ? "opacity-80" : ""}
+        />
+
+        <TextArea
+          name="comment"
+          label="Write a Comment..."
+          variant="bordered"
+          disableAnimation={false}
+          disableAutosize={false}
+          classNames={{
+            input: "min-h-[90px]",
+          }}
+        />
+
+        <Button
+          type="submit"
+          color="primary"
+          className="cursor-pointer w-full font-semibold shadow-md"
+        >
+          Write A comments
+        </Button>
+      </form>
+
+      <div className="flex flex-col gap-4">
+        {initialComments.length === 0 ? (
+          <p className="text-gray-400 dark:text-gray-500 text-sm text-center py-4">
+            No Comments Found
+          </p>
+        ) : (
+          initialComments.map((comment) => (
+            <div
+              key={comment._id}
+              className="p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:border-gray-300 dark:hover:border-gray-600"
+            >
+              <div className="flex justify-between items-center mb-2.5">
+                <span className="font-bold text-gray-800 dark:text-gray-200 text-sm">
+                  {comment.author}
+                </span>
+                <span className="text-xs text-gray-400 dark:text-gray-500">
+                  {comment.time}
+                </span>
+              </div>
+
+              {editingId === comment._id ? (
+                <div className="flex flex-col gap-3">
+                  <TextArea
+                    variant="bordered"
+                    color="primary"
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      color="success"
+                      className="cursor-pointer text-white font-semibold shadow-sm"
+                      onPress={() => handleUpdateSave(comment._id)}
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="flat"
+                      color="default"
+                      className="cursor-pointer font-semibold shadow-sm"
+                      onPress={() => setEditingId(null)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-4">
+                    {comment.text}
+                  </p>
+                  <div className="flex gap-2 text-xs font-semibold">
+                    <Button
+                      size="sm"
+                      variant="light"
+                      color="primary"
+                      className="cursor-pointer"
+                      onPress={() => handleEditInit(comment)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="light"
+                      color="danger"
+                      className="cursor-pointer"
+                      onPress={() => triggerDelete(comment._id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

@@ -30,8 +30,8 @@ const IdeaDetailsPage = ({ params: paramsPromise }) => {
 
   useEffect(() => {
     if (!params?.id) return;
-
-    fetch(`http://localhost:5000/api/idea/${params.id}`)
+    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
+    fetch(`${serverUrl}/api/idea/${params.id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch idea data");
         return res.json();
