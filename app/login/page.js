@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button, Card, Form, Input } from "@heroui/react";
+import { FaGoogle } from "react-icons/fa";
 import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
 
@@ -152,7 +153,7 @@ export default function Login() {
               isLoading={isGoogleLoading}
               startContent={!isGoogleLoading && <FcGoogle size={20} />}
             >
-              Sign in with Google
+              <FaGoogle /> Sign in with Google
             </Button>
           </Form>
 

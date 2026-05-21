@@ -139,8 +139,8 @@ const Nav = () => {
               <Dropdown.Trigger className="cursor-pointer rounded-full outline-none">
                 <Avatar>
                   <Avatar.Image
-                    alt={profileData.name}
                     src={profileData.image}
+                    alt={profileData.name}
                   />
                   <Avatar.Fallback>
                     {profileData.name?.charAt(0) || "U"}

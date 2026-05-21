@@ -9,8 +9,9 @@ export async function createBooking(params) {
     }
 
     const { _id, ideaTitle, category, tags, estimatedBudget } = ideaData;
+    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
 
-    const res = await fetch(`http://localhost:5000/api/ideadetails`, {
+    const res = await fetch(`${serverUrl}/api/ideadetails`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

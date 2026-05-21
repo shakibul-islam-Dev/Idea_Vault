@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button, Card, Input, Form } from "@heroui/react";
+import { FaGoogle } from "react-icons/fa";
 import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -172,9 +173,8 @@ export default function Registration() {
           className="w-full text-black dark:text-white border-gray-300 dark:border-gray-700 font-medium"
           onPress={handleGoogleSignUp}
           isDisabled={loading}
-          startContent={<FcGoogle size={20} />}
         >
-          Continue with Google
+          <FaGoogle /> Continue with Google
         </Button>
 
         <p className="text-gray-600 dark:text-gray-400 text-sm text-center mt-2">

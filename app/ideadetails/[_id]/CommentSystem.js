@@ -1,10 +1,9 @@
-// app/comment.js
 "use server";
 
 import { revalidatePath } from "next/cache";
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+  process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
 
 export async function CommentSystem() {
   try {

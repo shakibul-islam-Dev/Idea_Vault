@@ -38,7 +38,7 @@ export default function RootLayout({ children }) {
       <body className="bg-white text-black dark:bg-[#0a0c10] dark:text-gray-200 transition-colors duration-300  flex flex-col font-sans">
         <ThemeProvider>
           <Nav />
-          <main className="flex-1 w-full">{children}</main>
+          <main className="flex-1 w-full"> {children} </main>
           <Footer />
         </ThemeProvider>
       </body>
