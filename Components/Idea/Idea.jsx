@@ -1,45 +1,107 @@
 import { Button } from "@heroui/react";
-import IdeaDetails from "../IdeaDetails/IdeaDetails";
 import Image from "next/image";
 import Link from "next/link";
 
-const IdeaPage = async () => {
-  const res = await fetch("http://localhost:4000/api/idea", {
-    cache: "no-store",
-  });
-  const datas = await res.json();
-  const categories = ["Tech", "Health", "AI", "Education", "Finance", "Other"];
+const IdeaPage = async ({ searchParams }) => {
+  // ১. বানানের ভুল ফিক্স করা হয়েছে: searchParam থেকে searchParams করা হয়েছে
+  const resolvedParams = await searchParams;
+  const currentSearch = resolvedParams?.search || "";
+  const currentCategory = resolvedParams?.category || "";
+
+  // ব্যাকএন্ড API-তে কোয়েরি প্যারামিটার পাস করা
+  const fetchUrl = `http://localhost:5000/api/idea?search=${encodeURIComponent(currentSearch)}&category=${encodeURIComponent(currentCategory)}`;
+
+  let datas = [];
+  try {
+    const res = await fetch(fetchUrl, { cache: "no-store" });
+    if (res.ok) {
+      datas = await res.json();
+    }
+  } catch (error) {
+    console.error("Failed to fetch ideas:", error);
+  }
+
+  const categories = [
+    "All",
+    "Tech",
+    "Health",
+    "AI",
+    "Education",
+    "Finance",
+    "Other",
+  ];
 
   return (
     <section className="container mx-auto">
       <div className="p-5 flex flex-col items-center justify-center w-full text-center gap-6">
-        <div className="flex gap-2 w-full max-w-md justify-center">
+        {/* সার্চ ফর্ম */}
+        <form
+          action=""
+          method="GET"
+          className="flex gap-2 w-full max-w-md justify-center"
+        >
+          {currentCategory && (
+            <input type="hidden" name="category" value={currentCategory} />
+          )}
+
           <input
             type="text"
-            name="Search"
-            placeholder="Search Ideas"
-            className="border p-2 rounded w-full max-w-xs focus:outline-none"
+            name="search"
+            defaultValue={currentSearch}
+            placeholder="Search Ideas..."
+            className="border p-2 px-4 rounded-xl w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800"
           />
-          <Button className="cursor-pointer">Search</Button>
-        </div>
+          <Button
+            type="submit"
+            className="cursor-pointer bg-blue-600 text-white rounded-xl"
+          >
+            Search
+          </Button>
+        </form>
 
+        {/* ক্যাটাগরি ফিল্টার */}
         <div className="flex gap-2.5 items-center justify-center flex-wrap w-full">
-          {categories.map((value, index) => (
-            <div
-              key={index}
-              className="px-4 py-1.5 border border-gray-300 rounded-full cursor-pointer select-none text-sm bg-white text-gray-700 hover:bg-blue-600 hover:text-white hover:border-blue-600 active:bg-blue-700 transition-all duration-200"
-            >
-              {value}
-            </div>
-          ))}
+          {categories.map((value, index) => {
+            const isSelected =
+              value === "All" ? !currentCategory : currentCategory === value;
+
+            const searchPart = currentSearch
+              ? `search=${encodeURIComponent(currentSearch)}`
+              : "";
+            const catPart =
+              value !== "All" ? `category=${encodeURIComponent(value)}` : "";
+            const queryString = [searchPart, catPart].filter(Boolean).join("&");
+            const href = queryString ? `?${queryString}` : "/ideas";
+
+            return (
+              <Link
+                key={index}
+                href={href}
+                className={`px-4 py-1.5 border rounded-full cursor-pointer select-none text-sm font-medium transition-all duration-200 ${
+                  isSelected
+                    ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                {value}
+              </Link>
+            );
+          })}
         </div>
 
-        {/* grid-rows-fr lagano hoyeche jate shob card ek soman height-er hoy automatically */}
+        {/* নো ডেটা অ্যালার্ট */}
+        {datas.length === 0 && (
+          <div className="my-10 text-xl text-gray-500">
+            No ideas found matching your criteria.
+          </div>
+        )}
+
+        {/* আইডিয়া গ্রিড */}
         <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 auto-rows-fr gap-6 p-4">
           {datas.map((data) => (
             <div
               key={data._id}
-              className="flex flex-col justify-between w-full max-w-md p-5 border border-gray-200 rounded-xl shadow-sm bg-white"
+              className="flex flex-col justify-between w-full max-w-md p-5 border border-gray-200 rounded-2xl shadow-sm bg-white hover:shadow-md transition-shadow duration-300"
             >
               <div className="flex flex-col">
                 <div className="mb-3 text-left">
@@ -48,18 +110,21 @@ const IdeaPage = async () => {
                   </span>
                 </div>
 
-                <h3 className="text-lg font-bold text-gray-800 text-left mb-2">
+                <h3 className="text-lg font-bold text-gray-800 text-left mb-2 line-clamp-2">
                   {data.ideaTitle}
                 </h3>
 
                 <div className="relative w-full h-36 mb-4 bg-gray-100 rounded-xl overflow-hidden">
                   <Image
-                    src={data.imageUrl}
-                    alt={data.ideaTitle}
+                    src={
+                      data.imageUrl ||
+                      "https://images.unsplash.com/photo-1434030216411-0b793f4b4173"
+                    }
+                    alt={data.ideaTitle || "Idea Thumbnail"}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     priority
                     fill
-                    className="w-full h-full object-cover"
+                    className="object-cover"
                   />
                 </div>
 
@@ -75,17 +140,17 @@ const IdeaPage = async () => {
                 </div>
               </div>
 
-              {/* Content ar Button er majher distance balance rakha hoyeche */}
               <div className="pt-3 mt-auto border-t border-gray-100">
                 {data.estimatedBudget && (
                   <div className="text-left text-sm font-semibold text-emerald-600 mb-2">
-                    Budget: {data.estimatedBudget}
+                    Budget: ${data.estimatedBudget}
                   </div>
                 )}
-                <Link href={"/ideadetails"}>
-                  <Button className="w-full py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer text-center">
-                    View Details
-                  </Button>
+                <Link
+                  href={`/ideadetails/${data._id}`}
+                  className="block w-full py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl text-center transition-colors duration-200"
+                >
+                  View Details
                 </Link>
               </div>
             </div>

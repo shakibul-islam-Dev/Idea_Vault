@@ -40,7 +40,7 @@ export default function IdeaForm() {
     newIdea.tags = tags;
 
     try {
-      const res = await fetch("http://localhost:4000/api/idea", {
+      const res = await fetch(`http://localhost:5000/api/idea`, {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify(newIdea),

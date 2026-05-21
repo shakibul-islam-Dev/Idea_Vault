@@ -17,10 +17,11 @@ const Sliders = () => {
   const [loading, setLoading] = useState(true);
 
   // API থেকে ডেটা ফেচ করা
+
   useEffect(() => {
     const fetchSliders = async () => {
       try {
-        const res = await fetch("http://localhost:4000/api/idea");
+        const res = await fetch("http://localhost:5000/api/idea");
         const data = await res.json();
         setSlidesData(data.slice(0, 3));
       } catch (error) {
