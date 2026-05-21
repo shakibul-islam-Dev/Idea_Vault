@@ -14,7 +14,6 @@ export default function Registration() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
 
-  // যদি ইউআরএল-এ callbackUrl না থাকে, তাহলে ডিফল্ট হিসেবে হোম পেজ ('/') এ যাবে
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   const submit = async (e) => {
@@ -28,7 +27,7 @@ export default function Registration() {
         password: data.get("pass"),
         name: `${data.get("first")} ${data.get("last")}`,
         image: data.get("img") || null,
-        callbackUrl: callbackUrl, // এখানেও ছোট হাতের 'Url' ব্যবহার করা ভালো
+        callbackUrl: callbackUrl,
       });
 
       if (error) {
@@ -49,10 +48,10 @@ export default function Registration() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackUrl: callbackUrl, // 'callbackURL' পরিবর্তন করে 'callbackUrl' করা হয়েছে
+        callbackUrl: callbackUrl,
       });
     } catch (err) {
-      console.error(err); // কনসোলে এরর দেখার জন্য
+      console.error(err);
       toast.error("Google sign-up failed.");
       setLoading(false);
     }

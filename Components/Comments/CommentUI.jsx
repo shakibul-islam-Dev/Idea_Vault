@@ -1,9 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Button, TextArea } from "@heroui/react";
-import { Input } from "@heroui/react";
-
-import { Alert } from "@heroui/react";
+import { Button, TextArea, Input, Alert } from "@heroui/react";
 import {
   addComment,
   updateComment,
@@ -16,7 +13,6 @@ export default function CommentUI({
 }) {
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
-
   const [toast, setToast] = useState({
     show: false,
     message: "",
@@ -69,15 +65,17 @@ export default function CommentUI({
 
   return (
     <div className="relative container mx-auto my-10 p-6 bg-gray-50 dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 font-sans">
+      {/* Toast Notification */}
       {toast.show && (
         <div className="fixed top-5 right-5 z-50 animate-appearance-in max-w-sm">
           <Alert color={toast.type} title={toast.message} variant="faded" />
         </div>
       )}
 
+      {/* Delete Confirmation Modal */}
       {confirmDeleteId && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-6 shadow-xl border border-gray-150 dark:border-gray-700 animate-appearance-in">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-6 shadow-xl border border-gray-150 dark:border-gray-700">
             <h4 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-2">
               Are you sure?
             </h4>
@@ -88,7 +86,6 @@ export default function CommentUI({
               <Button
                 size="sm"
                 variant="light"
-                className="cursor-pointer"
                 onPress={() => setConfirmDeleteId(null)}
               >
                 Cancel
@@ -96,7 +93,7 @@ export default function CommentUI({
               <Button
                 size="sm"
                 color="danger"
-                className="cursor-pointer font-semibold shadow-md"
+                className="font-semibold shadow-md"
                 onPress={executeDelete}
               >
                 Delete
@@ -110,7 +107,9 @@ export default function CommentUI({
         Comment section ({initialComments.length})
       </h3>
 
+      {/* Comment Form */}
       <form
+        id="comment-submission-form"
         action={async (formData) => {
           try {
             await addComment(formData);
@@ -120,7 +119,6 @@ export default function CommentUI({
             showToast("Failed to post comment.", "danger");
           }
         }}
-        id="comment-submission-form"
         className="flex flex-col gap-4 mb-8"
       >
         <Input
@@ -129,7 +127,6 @@ export default function CommentUI({
           label="Your Name"
           variant="bordered"
           defaultValue={currentUser?.name || ""}
-          isreadOnly={!!currentUser?.name}
           className={currentUser?.name ? "opacity-80" : ""}
         />
 
@@ -137,22 +134,19 @@ export default function CommentUI({
           name="comment"
           label="Write a Comment..."
           variant="bordered"
-          disableAnimation={false}
-          disableAutosize={false}
-          classNames={{
-            input: "min-h-[90px]",
-          }}
+          className={{ input: "min-h-[90px]" }}
         />
 
         <Button
           type="submit"
           color="primary"
-          className="cursor-pointer w-full font-semibold shadow-md"
+          className="w-full font-semibold shadow-md"
         >
-          Write A comments
+          Write A Comment
         </Button>
       </form>
 
+      {/* Comments List */}
       <div className="flex flex-col gap-4">
         {initialComments.length === 0 ? (
           <p className="text-gray-400 dark:text-gray-500 text-sm text-center py-4">
@@ -162,7 +156,7 @@ export default function CommentUI({
           initialComments.map((comment) => (
             <div
               key={comment._id}
-              className="p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:border-gray-300 dark:hover:border-gray-600"
+              className="p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm"
             >
               <div className="flex justify-between items-center mb-2.5">
                 <span className="font-bold text-gray-800 dark:text-gray-200 text-sm">
@@ -185,7 +179,7 @@ export default function CommentUI({
                     <Button
                       size="sm"
                       color="success"
-                      className="cursor-pointer text-white font-semibold shadow-sm"
+                      className="text-white"
                       onPress={() => handleUpdateSave(comment._id)}
                     >
                       Save
@@ -193,8 +187,6 @@ export default function CommentUI({
                     <Button
                       size="sm"
                       variant="flat"
-                      color="default"
-                      className="cursor-pointer font-semibold shadow-sm"
                       onPress={() => setEditingId(null)}
                     >
                       Cancel
@@ -211,7 +203,6 @@ export default function CommentUI({
                       size="sm"
                       variant="light"
                       color="primary"
-                      className="cursor-pointer"
                       onPress={() => handleEditInit(comment)}
                     >
                       Edit
@@ -220,7 +211,6 @@ export default function CommentUI({
                       size="sm"
                       variant="light"
                       color="danger"
-                      className="cursor-pointer"
                       onPress={() => triggerDelete(comment._id)}
                     >
                       Delete

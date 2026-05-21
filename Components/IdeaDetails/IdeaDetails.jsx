@@ -3,39 +3,31 @@
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
-// Next.js App Router-এ ক্লায়েন্ট সাইডে params হ্যান্ডেল করার জন্য React.use প্রয়োজন হতে পারে,
-// অথবা সরাসরি useEffect-এর ডিপেন্ডেন্সিতে ট্র্যাক করতে হয়।
 const IdeaDetailsPage = ({ params: paramsPromise }) => {
   const [idea, setIdea] = useState(null);
   const [loading, setLoading] = useState(true);
   const [params, setParams] = useState(null);
-
-  // Comment states
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
 
-  // Fake logged in user
   const currentUser = "Shakib";
-  // const serverUrl =
-  //   process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
 
-  // ১. Next.js-এর প্রমিস params আনর্যাপ করা
   useEffect(() => {
-    Promise.resolve(paramsPromise).then((resolvedParams) => {
-      setParams(resolvedParams);
-    });
+    Promise.resolve(paramsPromise).then((resolvedParams) =>
+      setParams(resolvedParams),
+    );
   }, [paramsPromise]);
 
+  // Fetch Idea and Comments
   useEffect(() => {
     if (!params?.id) return;
-    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
+
+    // Idea Fetching
     fetch(`${serverUrl}/api/idea/${params.id}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch idea data");
-        return res.json();
-      })
+      .then((res) => res.json())
       .then((data) => {
         setIdea(data);
         setLoading(false);
@@ -44,226 +36,147 @@ const IdeaDetailsPage = ({ params: paramsPromise }) => {
         console.error(err);
         setLoading(false);
       });
-  }, [params?.id]);
 
-  // Add Comment
-  const handleAddComment = () => {
+    // Comments Fetching
+    fetch(`${serverUrl}/api/comments`)
+      .then((res) => res.json())
+      .then((data) => {
+        const filtered = data.filter((c) => c.ideaId === params.id);
+        setComments(filtered);
+      });
+  }, [params?.id, serverUrl]);
+
+  const handleAddComment = async () => {
     if (!commentText.trim()) return;
-
     const newComment = {
-      id: Date.now(),
+      ideaId: params.id,
       userName: currentUser,
       text: commentText,
-      timestamp: new Date().toLocaleString(),
+      time: new Date().toLocaleString(),
     };
 
-    setComments([newComment, ...comments]);
-    setCommentText("");
+    const res = await fetch(`${serverUrl}/api/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newComment),
+    });
+    if (res.ok) {
+      const result = await res.json();
+      setComments([{ ...newComment, _id: result.insertedId }, ...comments]);
+      setCommentText("");
+    }
   };
 
-  // Delete Comment
-  const handleDelete = (id) => {
-    const filtered = comments.filter((comment) => comment.id !== id);
-    setComments(filtered);
+  const handleDelete = async (id) => {
+    const res = await fetch(`${serverUrl}/api/comments/${id}`, {
+      method: "DELETE",
+    });
+    if (res.ok) setComments(comments.filter((c) => c._id !== id));
   };
 
-  // Start Edit
-  const handleEdit = (comment) => {
-    setEditingId(comment.id);
-    setEditText(comment.text);
+  const handleSaveEdit = async (id) => {
+    const res = await fetch(`${serverUrl}/api/comments/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: editText,
+        time: new Date().toLocaleString(),
+      }),
+    });
+    if (res.ok) {
+      setComments(
+        comments.map((c) => (c._id === id ? { ...c, text: editText } : c)),
+      );
+      setEditingId(null);
+    }
   };
 
-  // Save Edit
-  const handleSaveEdit = (id) => {
-    const updatedComments = comments.map((comment) =>
-      comment.id === id ? { ...comment, text: editText } : comment,
-    );
-
-    setComments(updatedComments);
-    setEditingId(null);
-    setEditText("");
-  };
-
-  if (loading || !idea) {
-    return (
-      <div className="flex justify-center items-center h-screen text-2xl font-bold bg-gray-50 text-slate-800">
-        <div className="animate-pulse">Loading Idea Details...</div>
-      </div>
-    );
-  }
+  if (loading || !idea)
+    return <div className="text-center p-20 dark:text-white">Loading...</div>;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10">
-      {/* Idea Details Card */}
-      <div className="bg-white rounded-3xl shadow-lg overflow-hidden border border-slate-100">
-        {idea.imageUrl && (
-          <div className="relative w-full h-[400px]">
-            <Image
-              src={idea.imageUrl}
-              alt={idea.title || idea.ideaTitle || "Idea Image"}
-              fill
-              priority
-              className="object-cover"
-            />
-          </div>
-        )}
-
-        <div className="p-8">
-          <div className="flex flex-wrap gap-3 mb-4">
-            {idea.tags?.map((tag, index) => (
-              <span
-                key={index}
-                className="bg-blue-50 text-blue-600 border border-blue-100 px-3 py-1 rounded-full text-sm font-medium"
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-
-          {/* আপনার ডেটাবেজের প্রোপার্টির সাথে মিলিয়ে title অথবা ideaTitle ব্যবহার করুন */}
-          <h1 className="text-4xl font-black text-slate-900 mb-4">
-            {idea.title || idea.ideaTitle}
-          </h1>
-
-          <p className="text-gray-600 text-lg mb-6">
-            {idea.shortDesc || idea.shortDescription}
+    <div className="max-w-6xl mx-auto px-4 py-10 bg-gray-50 dark:bg-slate-950 min-h-screen">
+      {/* Idea Card */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800 p-8">
+        <h1 className="text-4xl font-black text-slate-900 dark:text-white mb-4">
+          {idea.title || idea.ideaTitle}
+        </h1>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">
+          {idea.shortDesc || idea.shortDescription}
+        </p>
+        <div className="bg-slate-50 dark:bg-slate-800 p-5 rounded-2xl border dark:border-slate-700">
+          <h3 className="text-xs uppercase text-slate-500 dark:text-slate-400">
+            Problem Statement
+          </h3>
+          <p className="text-slate-800 dark:text-slate-200">
+            {idea.problemStatement}
           </p>
-
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-              <h3 className="font-bold text-slate-500 text-xs uppercase tracking-wider mb-2">
-                Category
-              </h3>
-              <p className="text-slate-800 font-semibold">
-                {idea.category || "N/A"}
-              </p>
-            </div>
-
-            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-              <h3 className="font-bold text-slate-500 text-xs uppercase tracking-wider mb-2">
-                Estimated Budget
-              </h3>
-              <p className="text-slate-800 font-semibold">
-                ${idea.budget || idea.estimatedBudget || "0"}
-              </p>
-            </div>
-
-            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-              <h3 className="font-bold text-slate-500 text-xs uppercase tracking-wider mb-2">
-                Target Audience
-              </h3>
-              <p className="text-slate-800 font-semibold">
-                {idea.targetAudience || "N/A"}
-              </p>
-            </div>
-
-            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-              <h3 className="font-bold text-slate-500 text-xs uppercase tracking-wider mb-2">
-                Problem Statement
-              </h3>
-              <p className="text-slate-700">{idea.problemStatement || "N/A"}</p>
-            </div>
-          </div>
-
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-slate-900 mb-3">
-              Detailed Description
-            </h2>
-            <p className="text-slate-700 leading-relaxed whitespace-pre-line">
-              {idea.detailedDesc || idea.detailedDescription}
-            </p>
-          </div>
-
-          <div className="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-6">
-            <h2 className="text-2xl font-bold mb-3 text-emerald-800">
-              Proposed Solution
-            </h2>
-            <p className="text-slate-700 leading-relaxed whitespace-pre-line">
-              {idea.proposedSolution}
-            </p>
-          </div>
         </div>
       </div>
 
       {/* Comment Section */}
-      <div className="mt-10 bg-white shadow-lg border border-slate-100 rounded-3xl p-8">
-        <h2 className="text-2xl font-bold text-slate-900 mb-6">
+      <div className="mt-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
           Discussion ({comments.length})
         </h2>
+        <textarea
+          value={commentText}
+          onChange={(e) => setCommentText(e.target.value)}
+          className="w-full bg-slate-50 dark:bg-slate-800 border dark:border-slate-700 rounded-2xl p-4 text-slate-900 dark:text-white"
+        />
+        <button
+          onClick={handleAddComment}
+          className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-xl"
+        >
+          Post Comment
+        </button>
 
-        {/* Add Comment */}
-        <div className="mb-8">
-          <textarea
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            placeholder="Share your thoughts on this blueprint..."
-            className="w-full border border-slate-200 text-slate-800 rounded-2xl p-4 h-32 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none transition-all"
-          />
-          <button
-            onClick={handleAddComment}
-            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-semibold transition-all active:scale-95"
-          >
-            Post Comment
-          </button>
-        </div>
-
-        {/* Comments List */}
-        <div className="space-y-6">
+        <div className="space-y-6 mt-8">
           {comments.map((comment) => (
             <div
-              key={comment.id}
-              className="border border-slate-100 bg-slate-50/50 rounded-2xl p-5"
+              key={comment._id}
+              className="border-b dark:border-slate-700 pb-4"
             >
-              <div className="flex justify-between items-center mb-3">
-                <div>
-                  <h3 className="font-bold text-slate-900 text-base">
-                    {comment.userName}
-                  </h3>
-                  <p className="text-xs text-gray-400">{comment.timestamp}</p>
-                </div>
-
+              <div className="flex justify-between">
+                <h3 className="font-bold dark:text-white">
+                  {comment.userName}
+                </h3>
                 {comment.userName === currentUser && (
-                  <div className="flex gap-4 text-sm">
+                  <div className="flex gap-2">
                     <button
-                      onClick={() => handleEdit(comment)}
-                      className="text-blue-600 font-semibold hover:underline"
+                      onClick={() => {
+                        setEditingId(comment._id);
+                        setEditText(comment.text);
+                      }}
+                      className="text-blue-500 text-sm"
                     >
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(comment.id)}
-                      className="text-red-500 font-semibold hover:underline"
+                      onClick={() => handleDelete(comment._id)}
+                      className="text-red-500 text-sm"
                     >
                       Delete
                     </button>
                   </div>
                 )}
               </div>
-
-              {editingId === comment.id ? (
-                <div className="mt-2">
+              {editingId === comment._id ? (
+                <div>
                   <textarea
                     value={editText}
                     onChange={(e) => setEditText(e.target.value)}
-                    className="w-full border border-slate-200 text-slate-800 rounded-xl p-3 h-24 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    className="w-full bg-slate-800 p-2 text-white"
                   />
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      onClick={() => handleSaveEdit(comment.id)}
-                      className="bg-emerald-600 text-white text-sm px-4 py-1.5 rounded-lg font-medium"
-                    >
-                      Save Changes
-                    </button>
-                    <button
-                      onClick={() => setEditingId(null)}
-                      className="bg-slate-200 text-slate-700 text-sm px-4 py-1.5 rounded-lg font-medium"
-                    >
-                      Cancel
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => handleSaveEdit(comment._id)}
+                    className="bg-green-600 text-white px-2 py-1 mt-1 text-sm"
+                  >
+                    Save
+                  </button>
                 </div>
               ) : (
-                <p className="text-slate-700 text-sm leading-relaxed">
+                <p className="text-slate-700 dark:text-slate-300">
                   {comment.text}
                 </p>
               )}

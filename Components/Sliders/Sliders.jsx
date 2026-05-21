@@ -87,7 +87,7 @@ const Sliders = () => {
               </p>
 
               {/* CTA Button */}
-              <Link href={`/ideadetails`}>
+              <Link href={`/ideas`}>
                 <Button className="px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium rounded-lg shadow-lg shadow-blue-500/20 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0">
                   Explore Ideas
                 </Button>

@@ -1,8 +1,6 @@
 "use client";
 import React, { useState } from "react";
-// 1. ToastContainer add kora hoyeche
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; // CSS import kora must!
+import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiFileText,
@@ -17,13 +15,26 @@ import {
   FiAlignLeft,
 } from "react-icons/fi";
 
-export default function IdeaForm() {
+export default function IdeaForm({ onIdeaSaved }) {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [tags, setTags] = useState([]);
   const [currentTag, setCurrentTag] = useState("");
 
   const categories = ["Tech", "Health", "AI", "Education", "Finance", "Other"];
+
+  const isValidImageUrl = (url) => {
+    if (!url) return true;
+    const pattern = new RegExp(
+      "^(https?:\\/\\/)?" + // protocol
+        "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name
+        "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR ip (v4) address
+        "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // port and path
+        "(\\.(jpg|jpeg|png|gif|webp|svg|bmp))(\\?.*)?$", // image formats
+      "i",
+    );
+    return !!pattern.test(url);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,9 +47,26 @@ export default function IdeaForm() {
     const formData = new FormData(form);
     const newIdea = Object.fromEntries(formData.entries());
 
+    // 💡 Image URL secure pattern checking
+    if (newIdea.imageUrl && !isValidImageUrl(newIdea.imageUrl)) {
+      return toast.error(
+        "Please enter a valid image URL! (e.g., .jpg, .png, .webp)",
+      );
+    }
+
     newIdea.category = selectedCategory;
     newIdea.tags = tags;
+
+    // 💡 Unique Browser ID or Token logic
+    let clientToken = localStorage.getItem("my_ideas_token");
+    if (!clientToken) {
+      clientToken = "user_" + Math.random().toString(36).substring(2, 11);
+      localStorage.setItem("my_ideas_token", clientToken);
+    }
+    newIdea.clientToken = clientToken;
+
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
+
     try {
       const res = await fetch(`${serverUrl}/api/idea`, {
         method: "POST",
@@ -53,6 +81,8 @@ export default function IdeaForm() {
         form.reset();
         setTags([]);
         setSelectedCategory("");
+
+        if (onIdeaSaved) onIdeaSaved();
       } else {
         toast.error(data.message || "Something went wrong!");
       }
@@ -73,22 +103,7 @@ export default function IdeaForm() {
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-slate-50 dark:bg-[#0a0c10] text-slate-900 dark:text-gray-200 flex items-center justify-center p-4 sm:p-8 font-sans antialiased transition-colors duration-300">
-      {/* 2. ToastContainer ekhane thakte hobe */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
-
-      {/* Glow Effects */}
+    <div className="relative w-full bg-slate-50 dark:bg-[#0a0c10] text-slate-900 dark:text-gray-200 flex items-center justify-center p-4 sm:p-8 font-sans antialiased transition-colors duration-300">
       <div className="hidden dark:block absolute top-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
       <div className="hidden dark:block absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-[120px] pointer-events-none" />
 
@@ -107,7 +122,6 @@ export default function IdeaForm() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Row 1: Title & Image URL */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col gap-2">
               <label className="text-xs font-mono uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
@@ -128,13 +142,12 @@ export default function IdeaForm() {
               <input
                 type="text"
                 name="imageUrl"
-                placeholder="https://image.com/link"
+                placeholder="https://image.com/link.jpg"
                 className="w-full bg-slate-100 dark:bg-white/3 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-600 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               />
             </div>
           </div>
 
-          {/* Row 2: Short & Audience */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col gap-2">
               <label className="text-xs font-mono uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
@@ -162,7 +175,6 @@ export default function IdeaForm() {
             </div>
           </div>
 
-          {/* Row 3: Category & Budget */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col gap-2 relative">
               <label className="text-xs font-mono uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
@@ -217,7 +229,6 @@ export default function IdeaForm() {
             </div>
           </div>
 
-          {/* Detailed Description */}
           <div className="flex flex-col gap-2">
             <label className="text-xs font-mono uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
               <FiAlignLeft className="text-slate-400" /> Detailed Description *
@@ -231,7 +242,6 @@ export default function IdeaForm() {
             />
           </div>
 
-          {/* Problem & Solution */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col gap-2">
               <label className="text-xs font-mono uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
@@ -260,7 +270,6 @@ export default function IdeaForm() {
             </div>
           </div>
 
-          {/* Tags */}
           <div className="flex flex-col gap-2">
             <label className="text-xs font-mono uppercase tracking-widest text-slate-500 dark:text-gray-400 flex items-center gap-2">
               <FiTag className="text-pink-500" /> Tags
@@ -289,7 +298,6 @@ export default function IdeaForm() {
             </div>
           </div>
 
-          {/* Submit Button */}
           <div className="pt-4 flex justify-end">
             <button
               type="submit"

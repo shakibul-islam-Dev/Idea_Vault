@@ -16,7 +16,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const callbackUrl = searchParams.get("callbackUrl");
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -30,7 +30,7 @@ export default function Login() {
       const { error } = await authClient.signIn.email({
         email,
         password,
-        callbackURL: callbackUrl || "/",
+        callbackUrl: callbackUrl || "/",
         callbackOnNavigate: true,
       });
 
@@ -39,7 +39,11 @@ export default function Login() {
         setIsLoading(false);
       } else {
         toast.success("Welcome back!");
-        router.push(callbackUrl);
+
+        setTimeout(() => {
+          router.push(callbackUrl);
+          router.refresh();
+        }, 1000);
       }
     } catch (err) {
       toast.error("Something went wrong. Please try again.");
@@ -52,10 +56,9 @@ export default function Login() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: callbackUrl || "/",
+        callbackUrl: callbackUrl,
         callbackOnNavigate: true,
       });
-      // Do not turn off loading state here; let the page transition naturally
     } catch (err) {
       toast.error("Google sign-in failed.");
       setIsGoogleLoading(false);
@@ -64,7 +67,7 @@ export default function Login() {
 
   return (
     <div className="flex h-screen w-screen items-center justify-center p-4 bg-background text-foreground">
-      <ToastContainer position="top-center" autoClose={3000} />
+      <ToastContainer position="top-center" autoClose={2000} />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -153,7 +156,7 @@ export default function Login() {
           <p className="text-center text-small text-default-500 mt-2">
             Don&apos;t have an account?{" "}
             <Link
-              href="/registration"
+              href={`/registration?callbackUrl=${encodeURIComponent(callbackUrl)}`}
               className="text-primary hover:underline font-medium"
             >
               Sign up

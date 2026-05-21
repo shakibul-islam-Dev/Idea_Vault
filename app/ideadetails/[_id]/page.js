@@ -8,8 +8,11 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
-// আপনার কমেন্ট সিস্টেম বা সার্ভার অ্যাকশন ফাইলটি ইমপোর্ট করুন
 import { CommentSystem } from "./CommentSystem";
+export const metadata = {
+  title: "Idea DetailsPage",
+  description: "Idea DetailsPage.",
+};
 
 const IdeaDetailsPage = async ({ params }) => {
   const resolvedParams = await params;
@@ -19,12 +22,10 @@ const IdeaDetailsPage = async ({ params }) => {
 
   const requestHeaders = await headers();
 
-  // ১. সেশন থেকে লগইন থাকা ইউজারের ডেটা আনা হলো
   const session = await auth.api.getSession({
     headers: requestHeaders,
   });
 
-  // ২. ইউজার অবজেক্ট তৈরি (লগইন না থাকলে null থাকবে)
   const loggedInUser = session?.user ? { name: session.user.name } : null;
 
   const { token } = await auth.api.getToken({

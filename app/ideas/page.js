@@ -1,4 +1,8 @@
 import Idea from "@/Components/Idea/Idea";
+export const metadata = {
+  title: "Idea",
+  description: "This is Idea.",
+};
 
 export default function Home() {
   return (
