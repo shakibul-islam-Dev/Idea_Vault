@@ -4,10 +4,10 @@ import { useState } from "react";
 import { Button, Card, Input, Form } from "@heroui/react";
 import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
-import { authClient } from "../../lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { authClient } from "@/lib/auth-client";
 
 export default function Registration() {
   const router = useRouter();
@@ -20,14 +20,21 @@ export default function Registration() {
     e.preventDefault();
     setLoading(true);
 
-    const data = new FormData(e.currentTarget);
+    // ইনপুট ফিল্ড থেকে সরাসরি ভ্যালু নেওয়া হচ্ছে
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("mail");
+    const password = formData.get("pass");
+    const firstName = formData.get("first");
+    const lastName = formData.get("last");
+    const image = formData.get("img");
+
     try {
       const { error } = await authClient.signUp.email({
-        email: data.get("mail"),
-        password: data.get("pass"),
-        name: `${data.get("first")} ${data.get("last")}`,
-        image: data.get("img") || null,
-        callbackUrl: callbackUrl,
+        email: email,
+        password: password,
+        name: `${firstName} ${lastName}`,
+        image: image || null,
+        callbackURL: callbackUrl,
       });
 
       if (error) {
@@ -48,7 +55,7 @@ export default function Registration() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackUrl: callbackUrl,
+        callbackURL: callbackUrl,
       });
     } catch (err) {
       console.error(err);
@@ -76,7 +83,6 @@ export default function Registration() {
           onSubmit={submit}
           validationBehavior="native"
         >
-          {/* First Name & Last Name */}
           <div className="grid grid-cols-2 gap-4 w-full">
             <div className="flex flex-col gap-1">
               <label className="text-small font-medium text-gray-700 dark:text-gray-300">
@@ -104,7 +110,6 @@ export default function Registration() {
             </div>
           </div>
 
-          {/* Image URL */}
           <div className="w-full flex flex-col gap-1">
             <label className="text-small font-medium text-gray-700 dark:text-gray-300">
               Image URL (Optional)
@@ -117,7 +122,6 @@ export default function Registration() {
             />
           </div>
 
-          {/* Email */}
           <div className="w-full flex flex-col gap-1">
             <label className="text-small font-medium text-gray-700 dark:text-gray-300">
               Email <span className="text-danger">*</span>
@@ -132,7 +136,6 @@ export default function Registration() {
             />
           </div>
 
-          {/* Password */}
           <div className="w-full flex flex-col gap-1">
             <label className="text-small font-medium text-gray-700 dark:text-gray-300">
               Password <span className="text-danger">*</span>
@@ -157,14 +160,12 @@ export default function Registration() {
           </Button>
         </Form>
 
-        {/* Divider */}
         <div className="flex items-center my-2 w-full">
           <div className="flex-1 border-t border-gray-200 dark:border-gray-700"></div>
           <span className="px-3 text-xs text-gray-400 uppercase">Or</span>
           <div className="flex-1 border-t border-gray-200 dark:border-gray-700"></div>
         </div>
 
-        {/* Google Button */}
         <Button
           type="button"
           variant="bordered"
@@ -176,7 +177,6 @@ export default function Registration() {
           Continue with Google
         </Button>
 
-        {/* Login Link */}
         <p className="text-gray-600 dark:text-gray-400 text-sm text-center mt-2">
           Already have an account?{" "}
           <Link

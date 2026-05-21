@@ -4,11 +4,12 @@ import { useState } from "react";
 import { Button, Card, Form, Input } from "@heroui/react";
 import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
-import { authClient } from "../../lib/auth-client";
+
 import { useRouter, useSearchParams } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion } from "framer-motion";
+import { authClient } from "@/lib/auth-client";
 
 export default function Login() {
   const router = useRouter();
@@ -23,8 +24,10 @@ export default function Login() {
     setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
+    console.log(e.currentTarget);
     const email = formData.get("email");
     const password = formData.get("password");
+    console.log(email, password);
 
     try {
       const { error } = await authClient.signIn.email({
