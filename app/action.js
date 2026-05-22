@@ -1,6 +1,5 @@
 "use server";
 
-console.log("Action.js ফাইল লোড হয়েছে!");
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
