@@ -25,9 +25,9 @@ export default function SubmitIdeaForm(params) {
       userId: user?.id,
       date: value ? value.toDate(getLocalTimeZone()).toISOString() : null,
     };
-
+    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
     try {
-      const response = await fetch("http://localhost:5000/api/idea", {
+      const response = await fetch(`${serverUrl}/api/idea`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(finalData),
