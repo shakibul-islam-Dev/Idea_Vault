@@ -1,10 +1,10 @@
-import { auth } from "@/lib/auth"; // আপনার পাথ ঠিক থাকলে এটি রাখুন
+import { auth } from "@/lib/auth";
 import MyIdeas from "@/Components/MyIdeas/MyIdeas";
 import React from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { MongoClient } from "mongodb";
-import { headers } from "next/headers"; // এটি ইমপোর্ট করুন
+import { headers } from "next/headers";
 
 export const metadata = {
   title: "MY Ideas",
@@ -12,7 +12,6 @@ export const metadata = {
 };
 
 async function getIdeas() {
-  // Better Auth এর ক্ষেত্রে সেশন পাওয়ার সঠিক নিয়ম:
   const session = await auth.api.getSession({
     headers: await headers(),
   });

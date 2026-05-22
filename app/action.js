@@ -10,13 +10,11 @@ import { ObjectId } from "mongodb";
 
 import { MongoClient } from "mongodb";
 
-// কানেকশন ফাংশন
 async function getDb() {
   const client = await clientPromise;
   return { client, db: client.db("IdeaVault") };
 }
 
-// 1. Create Post
 export async function createPost(formData) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) throw new Error("Unauthorized");
@@ -32,7 +30,6 @@ export async function createPost(formData) {
   revalidatePath("/my-ideas");
 }
 
-// 2. Log Action (সঠিক লজিক - লুপটি মুছে ফেলা হয়েছে)
 export async function logUserAction(userId, action, details) {
   try {
     const client = await clientPromise;
@@ -43,9 +40,9 @@ export async function logUserAction(userId, action, details) {
       details: details || {},
       timestamp: new Date(),
     });
-    console.log("ডাটাবেসে ইনসার্ট হয়েছে!");
+    console.log("Database Insert");
   } catch (err) {
-    console.error("ইনসার্ট এরর:", err);
+    console.error("Database Error", err);
   }
 }
 async function getIdeas(query = "") {
@@ -55,10 +52,9 @@ async function getIdeas(query = "") {
   const client = await MongoClient.connect(process.env.MONGODB_URI);
   const db = client.db("IdeaVault");
 
-  // সার্চ কুয়েরি থাকলে ফিল্টার করুন
   const filter = { userId: session.user.id };
   if (query) {
-    filter.title = { $regex: query, $options: "i" }; // 'i' মানে case-insensitive
+    filter.title = { $regex: query, $options: "i" };
   }
 
   const ideas = await db.collection("IdeaVaults").find(filter).toArray();
@@ -116,19 +112,16 @@ export async function getIdeasAction(query = "", category = "") {
 
 export async function deleteActivityAction(formData) {
   try {
-    // Hidden input থেকে আইডি নেওয়া হচ্ছে
     const activityId = formData.get("id");
     if (!activityId) return;
 
     const client = await clientPromise;
     const db = client.db("IdeaVault");
 
-    // ডাটাবেস থেকে ডিলিট করা
     await db
       .collection("activities")
       .deleteOne({ _id: new ObjectId(activityId) });
 
-    // পেজ রিভ্যালিডেট করা
     revalidatePath("/dashboard");
   } catch (error) {
     console.error("Error deleting activity:", error);

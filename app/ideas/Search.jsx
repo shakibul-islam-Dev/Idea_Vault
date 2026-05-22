@@ -4,14 +4,12 @@ import React, { useState } from "react";
 export default function MyIdeas({ initialIdeas }) {
   const [searchTerm, setSearchTerm] = useState("");
 
-  // সার্চ অনুযায়ী আইডিয়া ফিল্টার করা
   const filteredIdeas = initialIdeas.filter((idea) =>
     idea.title?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
     <div className="w-full max-w-4xl px-4">
-      {/* সার্চ ইনপুট */}
       <div className="mb-6">
         <input
           type="text"
@@ -22,7 +20,6 @@ export default function MyIdeas({ initialIdeas }) {
         />
       </div>
 
-      {/* আইডিয়া লিস্ট */}
       <div className="grid gap-4">
         {filteredIdeas.map((idea) => (
           <div key={idea._id} className="p-4 border rounded shadow">
