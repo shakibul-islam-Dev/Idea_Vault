@@ -4,9 +4,7 @@ import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import clientPromise from "@/lib/mongodb";
-
 import { ObjectId } from "mongodb";
-
 import { MongoClient } from "mongodb";
 
 async function getDb() {
@@ -30,11 +28,13 @@ export async function createPost(formData) {
 }
 
 export async function logUserAction(userId, action, details) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) throw new Error("Unauthorized");
+
   try {
-    const client = await clientPromise;
-    const db = client.db("IdeaVault");
+    const { db } = await getDb();
     await db.collection("activities").insertOne({
-      userId: userId || "unknown",
+      userId: session.user.id,
       action: action || "unknown",
       details: details || {},
       timestamp: new Date(),
@@ -44,6 +44,7 @@ export async function logUserAction(userId, action, details) {
     console.error("Database Error", err);
   }
 }
+
 async function getIdeas(query = "") {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) return [];
@@ -61,16 +62,17 @@ async function getIdeas(query = "") {
 }
 
 export async function getIdeasAction(query = "", category = "") {
-  try {
-    const client = await clientPromise;
-    const db = client.db("IdeaVault");
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) return [];
 
-    // ১. ব্যাকএন্ডে ডেটা ঠিকমতো আসছে কি না তা চেক করার জন্য:
+  try {
+    const { db } = await getDb();
+
     console.log("---- Debug Info ----");
     console.log("Search Query:", query);
     console.log("Selected Category:", category);
 
-    let filter = {};
+    let filter = { userId: session.user.id };
     let conditions = [];
 
     if (query) {
@@ -91,15 +93,13 @@ export async function getIdeasAction(query = "", category = "") {
     }
 
     if (conditions.length > 0) {
-      filter = { $and: conditions };
+      filter.$and = conditions;
     }
 
-    // ২. ফিল্টারটি দেখতে কেমন হয়েছে তা চেক করার জন্য:
     console.log("MongoDB Filter:", JSON.stringify(filter, null, 2));
 
     const ideas = await db.collection("IdeaVaults").find(filter).toArray();
 
-    // ৩. কয়টি ডেটা পেলো তা দেখার জন্য:
     console.log("Found Items:", ideas.length);
 
     return JSON.parse(JSON.stringify(ideas));
@@ -110,16 +110,18 @@ export async function getIdeasAction(query = "", category = "") {
 }
 
 export async function deleteActivityAction(formData) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) throw new Error("Unauthorized");
+
   try {
     const activityId = formData.get("id");
     if (!activityId) return;
 
-    const client = await clientPromise;
-    const db = client.db("IdeaVault");
+    const { db } = await getDb();
 
     await db
       .collection("activities")
-      .deleteOne({ _id: new ObjectId(activityId) });
+      .deleteOne({ _id: new ObjectId(activityId), userId: session.user.id });
 
     revalidatePath("/dashboard");
   } catch (error) {
