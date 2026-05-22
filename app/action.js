@@ -6,6 +6,8 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import clientPromise from "@/lib/mongodb";
 
+import { ObjectId } from "mongodb";
+
 import { MongoClient } from "mongodb";
 
 // কানেকশন ফাংশন
@@ -109,5 +111,26 @@ export async function getIdeasAction(query = "", category = "") {
   } catch (error) {
     console.error("Database Error:", error);
     return [];
+  }
+}
+
+export async function deleteActivityAction(formData) {
+  try {
+    // Hidden input থেকে আইডি নেওয়া হচ্ছে
+    const activityId = formData.get("id");
+    if (!activityId) return;
+
+    const client = await clientPromise;
+    const db = client.db("IdeaVault");
+
+    // ডাটাবেস থেকে ডিলিট করা
+    await db
+      .collection("activities")
+      .deleteOne({ _id: new ObjectId(activityId) });
+
+    // পেজ রিভ্যালিডেট করা
+    revalidatePath("/dashboard");
+  } catch (error) {
+    console.error("Error deleting activity:", error);
   }
 }

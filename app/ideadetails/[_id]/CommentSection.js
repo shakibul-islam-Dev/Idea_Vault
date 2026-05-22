@@ -1,6 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+// অ্যাক্টিভিটি লগ করার জন্য ইমপোর্টগুলো
+import { logUserAction } from "@/app/action";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
@@ -47,7 +51,17 @@ export async function addComment(formData) {
     });
 
     if (res.ok) {
+      // কমেন্ট সফলভাবে পোস্ট হওয়ার পর ইউজারের সেশন চেক করে অ্যাক্টিভিটি লগ করা
+      const session = await auth.api.getSession({ headers: await headers() });
+
+      if (session?.user) {
+        await logUserAction(session.user.id, "Posted a Comment", {
+          text: text.length > 50 ? text.substring(0, 50) + "..." : text, // বড় কমেন্ট হলে ছোট করে রাখা
+        });
+      }
+
       revalidatePath("/blog");
+      // (নোট: আপনার কমেন্ট সেকশন যদি আইডিয়ার পেজে থাকে, তবে "/blog" এর বদলে সেই পেজের পাথ দিতে পারেন)
     }
   } catch (error) {
     console.error("Error adding comment:", error);
