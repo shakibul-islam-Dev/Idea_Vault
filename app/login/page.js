@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import { Button, Card, Form, Input } from "@heroui/react";
-import { FaGoogle } from "react-icons/fa";
-import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
-
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -25,17 +23,14 @@ export default function Login() {
     setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    console.log(e.currentTarget);
     const email = formData.get("email");
     const password = formData.get("password");
-    console.log(email, password);
 
     try {
       const { error } = await authClient.signIn.email({
         email,
         password,
-        callbackUrl: callbackUrl || "/",
-        callbackOnNavigate: true,
+        callbackUrl,
       });
 
       if (error) {
@@ -43,11 +38,8 @@ export default function Login() {
         setIsLoading(false);
       } else {
         toast.success("Welcome back!");
-
-        setTimeout(() => {
-          router.push(callbackUrl);
-          router.refresh();
-        }, 1000);
+        router.push(callbackUrl);
+        router.refresh();
       }
     } catch (err) {
       toast.error("Something went wrong. Please try again.");
@@ -60,8 +52,7 @@ export default function Login() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackUrl: callbackUrl,
-        callbackOnNavigate: true,
+        callbackUrl,
       });
     } catch (err) {
       toast.error("Google sign-in failed.");
@@ -70,7 +61,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex h-screen w-screen items-center justify-center p-4 bg-background text-foreground">
+    <div className="flex min-h-screen w-full items-center justify-center p-4 bg-background text-foreground">
       <ToastContainer position="top-center" autoClose={2000} />
 
       <motion.div
@@ -79,85 +70,67 @@ export default function Login() {
         transition={{ duration: 0.3 }}
         className="w-full max-w-md"
       >
-        <Card className="p-8 shadow-xl border border-default-100 flex flex-col gap-4">
-          <div className="text-center mb-2">
-            <h2 className="text-2xl font-bold tracking-tight">Login</h2>
-            <p className="text-small text-default-500 mt-1">
+        <Card className="p-8 shadow-xl border border-default-200">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold">Login</h2>
+            <p className="text-default-500 mt-1">
               Welcome back! Please enter your details.
             </p>
           </div>
 
-          <Form
-            className="flex flex-col gap-4"
-            onSubmit={onSubmit}
-            validationBehavior="native"
-          >
-            <div className="w-full flex flex-col gap-1">
-              <label className="text-small font-medium text-default-700">
-                Email
-              </label>
-              <Input
-                required
-                name="email"
-                type="email"
-                placeholder="john@example.com"
-                variant="bordered"
-                fullWidth
-              />
-            </div>
+          <Form className="flex flex-col gap-4" onSubmit={onSubmit}>
+            <Input
+              name="email"
+              type="email"
+              label="Email"
+              placeholder="john@example.com"
+              variant="bordered"
+            />
 
-            <div className="w-full flex flex-col gap-1">
+            <div className="flex flex-col gap-1">
               <div className="flex justify-between items-center">
-                <label className="text-small font-medium text-default-700">
-                  Password
-                </label>
+                <span className="text-small font-medium">Password</span>
                 <Link
                   href="/forgot-password"
-                  className="text-xs text-primary hover:underline transition-all"
+                  className="text-xs text-primary hover:underline"
                 >
                   Forgot password?
                 </Link>
               </div>
               <Input
-                required
                 name="password"
                 type="password"
                 placeholder="••••••••"
                 variant="bordered"
-                fullWidth
               />
             </div>
 
             <Button
               type="submit"
               color="primary"
-              className="w-full font-semibold mt-2"
+              className="w-full font-semibold"
               isLoading={isLoading}
             >
               Sign in
             </Button>
 
-            <div className="flex items-center my-2 w-full">
-              <div className="flex-1 border-t border-default-200"></div>
-              <span className="px-3 text-xs text-default-400 uppercase">
-                Or
-              </span>
-              <div className="flex-1 border-t border-default-200"></div>
+            <div className="flex items-center gap-4 py-2">
+              <div className="flex-1 h-px bg-default-200"></div>
+              <span className="text-xs text-default-400">OR</span>
+              <div className="flex-1 h-px bg-default-200"></div>
             </div>
 
             <Button
-              type="button"
+              className="flex items-center"
               variant="bordered"
               onPress={handleGoogleSignIn}
-              className="w-full font-medium"
-              isLoading={isGoogleLoading}
-              startContent={!isGoogleLoading && <FcGoogle size={20} />}
             >
-              <FaGoogle /> Sign in with Google
+              <FcGoogle size={20} />
+              Sign in with Google
             </Button>
           </Form>
 
-          <p className="text-center text-small text-default-500 mt-2">
+          <p className="text-center text-small text-default-500 mt-6">
             Don&apos;t have an account?{" "}
             <Link
               href={`/registration?callbackUrl=${encodeURIComponent(callbackUrl)}`}

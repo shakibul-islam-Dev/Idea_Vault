@@ -1,16 +1,20 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button, TextArea, Input, Alert } from "@heroui/react";
 import {
   addComment,
   updateComment,
   deleteComment,
-} from "@/app/ideadetails/[_id]/CommentSection";
+} from "@Actions/CommentSection";
 
 export default function CommentUI({
   initialComments = [],
   currentUser = null,
+  ideaId,
 }) {
+  const router = useRouter();
+  const [comments, setComments] = useState(initialComments);
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
   const [toast, setToast] = useState({
@@ -20,82 +24,66 @@ export default function CommentUI({
   });
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
-  const showToast = (message, type = "success") => {
+  const showToast = (message, type) => {
     setToast({ show: true, message, type });
-    setTimeout(() => {
-      setToast({ show: false, message: "", type: "success" });
-    }, 3000);
-  };
-
-  const handleEditInit = (comment) => {
-    setEditingId(comment._id);
-    setEditText(comment.text);
+    setTimeout(
+      () => setToast({ show: false, message: "", type: "success" }),
+      3000,
+    );
   };
 
   const handleUpdateSave = async (id) => {
-    if (!editText.trim()) {
-      showToast("Comment cannot be empty!", "danger");
-      return;
-    }
-    try {
-      await updateComment(id, editText);
-      setEditingId(null);
-      setEditText("");
-      showToast("Comment updated successfully!", "success");
-    } catch (err) {
-      showToast("Failed to update comment.", "danger");
-    }
-  };
-
-  const triggerDelete = (id) => {
-    setConfirmDeleteId(id);
+    await updateComment(id, editText, ideaId);
+    setComments(
+      comments.map((c) =>
+        c._id === id
+          ? {
+              ...c,
+              text: editText,
+              time: new Date().toLocaleString() + " (Edited)",
+            }
+          : c,
+      ),
+    );
+    setEditingId(null);
+    showToast("Updated successfully!", "success");
   };
 
   const executeDelete = async () => {
-    if (!confirmDeleteId) return;
-    try {
-      await deleteComment(confirmDeleteId);
-      showToast("Comment deleted successfully!", "success");
-    } catch (err) {
-      showToast("Failed to delete comment.", "danger");
-    } finally {
-      setConfirmDeleteId(null);
-    }
+    await deleteComment(confirmDeleteId, ideaId);
+    setComments(comments.filter((c) => c._id !== confirmDeleteId));
+    setConfirmDeleteId(null);
+    showToast("Deleted successfully!", "success");
   };
 
   return (
-    <div className="relative container mx-auto my-10 p-6 bg-gray-50 dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 font-sans">
+    <div className="container mx-auto my-10 p-6 bg-white dark:bg-gray-950 rounded-xl border border-gray-200 dark:border-gray-800 transition-colors">
       {/* Toast Notification */}
       {toast.show && (
-        <div className="fixed top-5 right-5 z-50 animate-appearance-in max-w-sm">
-          <Alert color={toast.type} title={toast.message} variant="faded" />
+        <div className="fixed top-5 right-5 z-50">
+          <Alert color={toast.type} title={toast.message} />
         </div>
       )}
 
       {/* Delete Confirmation Modal */}
       {confirmDeleteId && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-6 shadow-xl border border-gray-150 dark:border-gray-700">
-            <h4 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-2">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-2xl max-w-sm w-full border border-gray-200 dark:border-gray-800">
+            <h4 className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-2">
               Are you sure?
             </h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
               This action will permanently delete your comment.
             </p>
-            <div className="flex justify-end gap-3">
+            <div className="flex gap-3 justify-end">
               <Button
                 size="sm"
-                variant="light"
+                variant="flat"
                 onPress={() => setConfirmDeleteId(null)}
               >
                 Cancel
               </Button>
-              <Button
-                size="sm"
-                color="danger"
-                className="font-semibold shadow-md"
-                onPress={executeDelete}
-              >
+              <Button size="sm" color="danger" onPress={executeDelete}>
                 Delete
               </Button>
             </div>
@@ -103,124 +91,99 @@ export default function CommentUI({
         </div>
       )}
 
-      <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 border-b border-gray-200 dark:border-gray-800 pb-3 mb-6">
-        Comment section ({initialComments.length})
+      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+        Comments ({comments.length})
       </h3>
 
       {/* Comment Form */}
       <form
         id="comment-submission-form"
         action={async (formData) => {
-          try {
-            await addComment(formData);
-            document.getElementById("comment-submission-form").reset();
-            showToast("Comment posted successfully!", "success");
-          } catch (err) {
-            showToast("Failed to post comment.", "danger");
-          }
+          formData.append("ideaId", ideaId);
+          await addComment(formData);
+          document.getElementById("comment-submission-form").reset();
+          router.refresh();
+          showToast("Posted successfully!", "success");
         }}
         className="flex flex-col gap-4 mb-8"
       >
         <Input
-          type="text"
           name="author"
-          label="Your Name"
-          variant="bordered"
-          defaultValue={currentUser?.name || ""}
-          className={currentUser?.name ? "opacity-80" : ""}
+          label="Name"
+          defaultValue={currentUser?.name}
+          className="dark:text-white"
         />
-
         <TextArea
           name="comment"
           label="Write a Comment..."
-          variant="bordered"
-          className={{ input: "min-h-[90px]" }}
+          className="dark:text-white"
         />
-
-        <Button
-          type="submit"
-          color="primary"
-          className="w-full font-semibold shadow-md"
-        >
-          Write A Comment
+        <Button type="submit" color="primary" className="font-semibold">
+          Post Comment
         </Button>
       </form>
 
       {/* Comments List */}
       <div className="flex flex-col gap-4">
-        {initialComments.length === 0 ? (
-          <p className="text-gray-400 dark:text-gray-500 text-sm text-center py-4">
-            No Comments Found
-          </p>
-        ) : (
-          initialComments.map((comment) => (
-            <div
-              key={comment._id}
-              className="p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm"
-            >
-              <div className="flex justify-between items-center mb-2.5">
-                <span className="font-bold text-gray-800 dark:text-gray-200 text-sm">
-                  {comment.author}
-                </span>
-                <span className="text-xs text-gray-400 dark:text-gray-500">
-                  {comment.time}
-                </span>
-              </div>
-
-              {editingId === comment._id ? (
-                <div className="flex flex-col gap-3">
-                  <TextArea
-                    variant="bordered"
-                    color="primary"
-                    value={editText}
-                    onChange={(e) => setEditText(e.target.value)}
-                  />
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      color="success"
-                      className="text-white"
-                      onPress={() => handleUpdateSave(comment._id)}
-                    >
-                      Save
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="flat"
-                      onPress={() => setEditingId(null)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
+        {comments.map((c) => (
+          <div
+            key={c._id}
+            className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg bg-gray-50 dark:bg-gray-900"
+          >
+            {editingId === c._id ? (
+              <div className="flex flex-col gap-2">
+                <TextArea
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                />
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    color="success"
+                    onPress={() => handleUpdateSave(c._id)}
+                  >
+                    Save
+                  </Button>
+                  <Button size="sm" onPress={() => setEditingId(null)}>
+                    Cancel
+                  </Button>
                 </div>
-              ) : (
-                <>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-4">
-                    {comment.text}
-                  </p>
-                  <div className="flex gap-2 text-xs font-semibold">
-                    <Button
-                      size="sm"
-                      variant="light"
-                      color="primary"
-                      onPress={() => handleEditInit(comment)}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="light"
-                      color="danger"
-                      onPress={() => triggerDelete(comment._id)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </>
-              )}
-            </div>
-          ))
-        )}
+              </div>
+            ) : (
+              <>
+                <p className="font-bold text-sm text-gray-900 dark:text-gray-100">
+                  {c.author}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  {c.time}
+                </p>
+                <p className="mb-3 text-gray-700 dark:text-gray-300">
+                  {c.text}
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="light"
+                    onPress={() => {
+                      setEditingId(c._id);
+                      setEditText(c.text);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="light"
+                    color="danger"
+                    onPress={() => setConfirmDeleteId(c._id)}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -17,7 +17,6 @@ export default function SubmitIdeaForm() {
       if (value) {
         formData.append("date", value.toDate(getLocalTimeZone()).toISOString());
       }
-
       await submitIdeaAction(formData);
       toast.success("Idea submitted successfully!");
     } catch (error) {
@@ -27,11 +26,15 @@ export default function SubmitIdeaForm() {
     }
   }
 
+  // Common styles for inputs and textareas to support Dark/Light mode
+  const fieldStyle =
+    "w-full p-3 rounded-lg border bg-white dark:bg-zinc-800 border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-blue-500 transition-colors";
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-black py-12 px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-black py-12 px-4 transition-colors">
       <Toaster position="top-right" richColors />
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6 dark:text-white flex items-center gap-2">
+        <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white flex items-center gap-2">
           <Rocket className="text-blue-600" /> Submit Startup Idea
         </h1>
 
@@ -39,37 +42,31 @@ export default function SubmitIdeaForm() {
           action={handleSubmit}
           className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm space-y-5"
         >
+          {/* Idea Title */}
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-gray-300">
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
               Idea Title
             </label>
-            <input
-              name="title"
-              required
-              className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <input name="title" required className={fieldStyle} />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1 dark:text-gray-300">
+              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                 Short Description
               </label>
               <textarea
                 name="shortDesc"
                 required
                 rows={2}
-                className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none"
+                className={fieldStyle}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 dark:text-gray-300">
+              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                 Category
               </label>
-              <select
-                name="category"
-                className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none"
-              >
+              <select name="category" className={fieldStyle}>
                 <option value="tech">Tech</option>
                 <option value="health">Health</option>
                 <option value="ai">AI</option>
@@ -78,97 +75,93 @@ export default function SubmitIdeaForm() {
             </div>
           </div>
 
+          {/* Detailed Description */}
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-gray-300">
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
               Detailed Description
             </label>
             <textarea
               name="detailedDesc"
               required
               rows={4}
-              className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none"
+              className={fieldStyle}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1 dark:text-gray-300">
+              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                 Tags (Optional)
               </label>
-              <input
-                name="tags"
-                className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none"
-              />
+              <input name="tags" className={fieldStyle} />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 dark:text-gray-300">
-                Estimated Budget (Optional)
+              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                Estimated Budget
               </label>
-              <input
-                name="budget"
-                type="number"
-                className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none"
-              />
+              <input name="budget" type="number" className={fieldStyle} />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-gray-300">
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
               Image URL
             </label>
-            <input
-              name="imageUrl"
-              type="url"
-              className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none"
-            />
+            <input name="imageUrl" type="url" className={fieldStyle} />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-gray-300">
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
               Target Audience
             </label>
-            <input
-              name="audience"
-              className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none"
-            />
+            <input name="audience" className={fieldStyle} />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-gray-300">
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
               Problem Statement
             </label>
-            <textarea
-              name="problem"
-              required
-              rows={3}
-              className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none"
-            />
+            <textarea name="problem" required rows={3} className={fieldStyle} />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-gray-300">
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
               Proposed Solution
             </label>
             <textarea
               name="solution"
               required
               rows={3}
-              className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none"
+              className={fieldStyle}
             />
           </div>
 
-          <DateField value={value} onChange={setValue} className="w-[256px]">
-            <Label>Date</Label>
-            <DateField.Group>
-              <DateField.Input className="text-white">
-                {(segment) => <DateField.Segment segment={segment} />}
-              </DateField.Input>
-            </DateField.Group>
-          </DateField>
+          {/* DateField with dark mode styling */}
+          <div className="flex flex-col gap-2">
+            <DateField
+              value={value}
+              onChange={setValue}
+              className="text-gray-900 dark:text-gray-100"
+            >
+              <Label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                Date
+              </Label>
+              <DateField.Group className="flex w-full p-3 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+                <DateField.Input className="flex w-full outline-none">
+                  {(segment) => (
+                    <DateField.Segment
+                      segment={segment}
+                      className="px-0.5 text-gray-900 dark:text-gray-100 focus:bg-blue-500/20 rounded"
+                    />
+                  )}
+                </DateField.Input>
+              </DateField.Group>
+            </DateField>
+          </div>
 
           <button
             disabled={loading}
-            className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2"
+            className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50"
           >
             {loading ? (
               "Saving..."

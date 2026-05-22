@@ -34,21 +34,22 @@ export default function SearchIdea() {
 
   return (
     <div className="w-full max-w-2xl mx-auto mb-10 flex flex-col md:flex-row gap-4">
+      {/* Search Input */}
       <input
         type="text"
-        placeholder="Search..."
+        placeholder="Search ideas..."
         defaultValue={searchParams.get("q") || ""}
         onChange={handleSearch}
-        className="w-full md:w-2/3 p-4 border rounded-xl focus:outline-none focus:border-slate-900"
+        className="w-full md:w-2/3 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
       />
 
+      {/* Category Select */}
       <select
         defaultValue={searchParams.get("category") || ""}
         onChange={handleCategoryChange}
-        className="w-full md:w-1/3 p-4 border rounded-xl focus:outline-none focus:border-slate-900 bg-white"
+        className="w-full md:w-1/3 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
       >
         <option value="">All Categories</option>
-
         <option value="AI">AI</option>
         <option value="Technology">Technology</option>
         <option value="Education">Education</option>

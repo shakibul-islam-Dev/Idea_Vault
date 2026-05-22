@@ -1,127 +1,267 @@
-"use client";
-
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+// import { Button, Card } from "@heroui/react";
+import { FaArrowLeft } from "react-icons/fa";
+import Link from "next/link";
+// import InteractionButton from "@/Components/InteractionButton/InteractionButton";
+import CommentUI from "@/Components/Comments/CommentUI";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { notFound } from "next/navigation";
+// import React, { useEffect, useState } from "react";
+// const IdeaDetailsPage = ({ params: paramsPromise }) => {
+//   const [idea, setIdea] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [params, setParams] = useState(null);
+//   const [comments, setComments] = useState([]);
+//   const [commentText, setCommentText] = useState("");
+//   const [editingId, setEditingId] = useState(null);
+//   const [editText, setEditText] = useState("");
 
-const IdeaDetailsPage = ({ params: paramsPromise }) => {
-  const [idea, setIdea] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [params, setParams] = useState(null);
-  const [comments, setComments] = useState([]);
-  const [commentText, setCommentText] = useState("");
-  const [editingId, setEditingId] = useState(null);
-  const [editText, setEditText] = useState("");
+// const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
+// console.log(serverUrl);
+// const resolvedParams = await params;
+// const id = resolvedParams?._id || resolvedParams?.id;
 
-  const currentUser = "Shakib";
-  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
+// if (!id) notFound();
 
-  useEffect(() => {
-    Promise.resolve(paramsPromise).then((resolvedParams) =>
-      setParams(resolvedParams),
-    );
-  }, [paramsPromise]);
+// const requestHeaders = await headers();
 
-  useEffect(() => {
-    if (!params?.id) return;
-    fetch(`${serverUrl}/api/idea/${params.id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setIdea(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
-      });
+// const session = await auth.api.getSession({
+//   headers: requestHeaders,
+// });
 
-    fetch(`${serverUrl}/api/comments`)
-      .then((res) => res.json())
-      .then((data) => {
-        const filtered = data.filter((c) => c.ideaId === params.id);
-        setComments(filtered);
-      });
-  }, [params?.id, serverUrl]);
+// const loggedInUser = session?.user ? { name: session.user.name } : null;
 
-  const handleAddComment = async () => {
-    if (!commentText.trim()) return;
-    const newComment = {
-      ideaId: params.id,
-      userName: currentUser,
-      text: commentText,
-      time: new Date().toLocaleString(),
-    };
+// const { token } = await auth.api.getToken({
+//   headers: requestHeaders,
+// });
+// const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
 
-    const res = await fetch(`${serverUrl}/api/comments`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newComment),
-    });
-    if (res.ok) {
-      const result = await res.json();
-      setComments([{ ...newComment, _id: result.insertedId }, ...comments]);
-      setCommentText("");
-    }
-  };
+// const res = await fetch(`${serverUrl}/api/idea/${id}`, {
+//   headers: {
+//     authorization: `Bearer ${token}`,
+//   },
+//   cache: "no-store",
+// });
 
-  const handleDelete = async (id) => {
-    const res = await fetch(`${serverUrl}/api/comments/${id}`, {
-      method: "DELETE",
-    });
-    if (res.ok) setComments(comments.filter((c) => c._id !== id));
-  };
+// if (!res.ok) {
+//   notFound();
+// }
 
-  const handleSaveEdit = async (id) => {
-    const res = await fetch(`${serverUrl}/api/comments/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: editText,
-        time: new Date().toLocaleString(),
-      }),
-    });
-    if (res.ok) {
-      setComments(
-        comments.map((c) => (c._id === id ? { ...c, text: editText } : c)),
-      );
-      setEditingId(null);
-    }
-  };
+// const data = await res.json();
+// const {
+//   _id,
+//   ideaTitle,
+//   detailedDescription,
+//   category,
+//   tags,
+//   imageUrl,
+//   estimatedBudget,
+//   targetAudience,
+//   problemStatement,
+//   proposedSolution,
+// } = data;
 
-  if (loading || !idea)
-    return <div className="text-center p-20 dark:text-white">Loading...</div>;
+// const allComments = await CommentSystem();
+
+// useEffect(() => {
+//   Promise.resolve(paramsPromise).then((resolvedParams) =>
+//     setParams(resolvedParams),
+//   );
+// }, [paramsPromise]);
+
+// useEffect(() => {
+//   if (!params?.id) return;
+//   fetch(`${serverUrl}/api/idea/${params.id}`)
+//     .then((res) => res.json())
+//     .then((data) => {
+//       setIdea(data);
+//       setLoading(false);
+//     })
+//     .catch((err) => {
+//       console.error(err);
+//       setLoading(false);
+//     });
+
+//   fetch(`${serverUrl}/api/comments`)
+//     .then((res) => res.json())
+//     .then((data) => {
+//       const filtered = data.filter((c) => c.ideaId === params.id);
+//       setComments(filtered);
+//     });
+// }, [params?.id, serverUrl]);
+
+// const handleAddComment = async () => {
+//   if (!commentText.trim()) return;
+//   const newComment = {
+//     ideaId: params.id,
+//     userName: currentUser,
+//     text: commentText,
+//     time: new Date().toLocaleString(),
+//   };
+
+//   const res = await fetch(`${serverUrl}/api/comments`, {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: JSON.stringify(newComment),
+//   });
+//   if (res.ok) {
+//     const result = await res.json();
+//     setComments([{ ...newComment, _id: result.insertedId }, ...comments]);
+//     setCommentText("");
+//   }
+// };
+
+// const handleDelete = async (id) => {
+//   const res = await fetch(`${serverUrl}/api/comments/${id}`, {
+//     method: "DELETE",
+//   });
+//   if (res.ok) setComments(comments.filter((c) => c._id !== id));
+// };
+
+// const handleSaveEdit = async (id) => {
+//   const res = await fetch(`${serverUrl}/api/comments/${id}`, {
+//     method: "PATCH",
+//     headers: { "Content-Type": "application/json" },
+//     body: JSON.stringify({
+//       text: editText,
+//       time: new Date().toLocaleString(),
+//     }),
+//   });
+//   if (res.ok) {
+//     setComments(
+//       comments.map((c) => (c._id === id ? { ...c, text: editText } : c)),
+//     );
+//     setEditingId(null);
+//   }
+// };
+
+// if (loading || !idea)
+//   return <div className="text-center p-20 dark:text-white">Loading...</div>;
+import { Card } from "@heroui/react"; // অথবা আপনার UI লাইব্রেরি অনুযায়ী
+// import Image from "next/image";
+import InteractionButton from "@/Components/InteractionButton/InteractionButton";
+// CommentUI এখানে প্রয়োজন নেই কারণ এটি Parent Page থেকে পাস হচ্ছে,
+// তবে আপনার কোড স্ট্রাকচার অনুযায়ী চাইলে রাখতে পারেন।
+
+const IdeaDetails = ({ idea }) => {
+  // idea অবজেক্ট থেকে প্রপার্টিগুলো বের করে নেওয়া
+  const {
+    _id,
+    ideaTitle,
+    detailedDescription,
+    category,
+    tags,
+    imageUrl,
+    estimatedBudget,
+    targetAudience,
+    problemStatement,
+    proposedSolution,
+  } = idea;
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 bg-gray-50 dark:bg-slate-950 min-h-screen">
-      {/* Idea Card */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800 p-8">
-        <h1 className="text-4xl font-black text-slate-900 dark:text-white mb-4">
-          {idea.title || idea.ideaTitle}
-        </h1>
-        <p className="text-slate-600 dark:text-slate-400 mb-6">
-          {idea.shortDesc || idea.shortDescription}
-        </p>
-        <div className="bg-slate-50 dark:bg-slate-800 p-5 rounded-2xl border dark:border-slate-700">
-          <h3 className="text-xs uppercase text-slate-500 dark:text-slate-400">
-            Problem Statement
-          </h3>
-          <p className="text-slate-800 dark:text-slate-200">
-            {idea.problemStatement}
-          </p>
+      <Card className="w-full p-8 flex flex-col gap-6 border border-default-200/60 dark:border-default-100/40 bg-gradient-to-br from-background via-background to-default-100/30 dark:to-default-50/10 shadow-xl hover:shadow-2xl hover:border-primary-300/40 transition-all duration-300 rounded-3xl">
+        {/* Image Section */}
+        <div className="relative h-[280px] sm:h-[350px] w-full shrink-0 overflow-hidden rounded-2xl bg-gradient-to-tr from-default-100 to-default-200/50 shadow-inner flex items-center justify-center">
+          {imageUrl && (
+            <Image
+              src={imageUrl}
+              alt={ideaTitle || "Idea Preview"}
+              className="pointer-events-none absolute inset-0 h-full w-full object-cover select-none transition-transform duration-500 hover:scale-105"
+              loading="lazy"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              fill
+            />
+          )}
+          <span className="absolute bottom-3 right-3 text-[10px] font-semibold tracking-wider text-white/80 bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded uppercase">
+            Preview
+          </span>
         </div>
-      </div>
 
-      {/* Comment Section */}
-      <div className="border p-6 rounded-2xl bg-white dark:bg-slate-900">
-        <h1 className="text-2xl font-bold">{idea.title || idea.ideaTitle}</h1>
-        <p className="text-gray-500 my-2">
-          {idea.shortDesc || idea.shortDescription}
-        </p>
-        <p className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl mt-3">
-          {idea.problemStatement}
-        </p>
-      </div>
+        {/* Content Section */}
+        <div className="flex flex-1 flex-col justify-between gap-4">
+          <div className="gap-3 p-0 flex flex-col items-start w-full">
+            <div className="flex flex-col gap-1.5 w-full">
+              <div className="flex flex-wrap items-center gap-2">
+                {category && (
+                  <span className="text-xs font-bold uppercase tracking-wider text-primary bg-primary-50 dark:bg-primary-950/30 px-2.5 py-1 rounded-md">
+                    {category}
+                  </span>
+                )}
+              </div>
+              <h1 className="pr-8 text-2xl sm:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground to-default-600/80">
+                {ideaTitle}
+              </h1>
+            </div>
+          </div>
+
+          <div className="p-0 flex flex-col gap-4 overflow-visible w-full">
+            <p className="text-base leading-relaxed text-default-600 font-medium w-full pt-1 whitespace-pre-line">
+              {detailedDescription}
+            </p>
+
+            {problemStatement && (
+              <div className="text-sm p-4 rounded-xl bg-danger-50/40 dark:bg-danger-950/10 border border-danger-100/50 dark:border-danger-900/20 text-default-700 w-full">
+                <strong className="block text-xs font-bold uppercase tracking-wide text-danger mb-1">
+                  The Problem:
+                </strong>
+                <p className="leading-relaxed">{problemStatement}</p>
+              </div>
+            )}
+
+            {proposedSolution && (
+              <div className="text-sm p-4 rounded-xl bg-success-50/40 dark:bg-success-950/10 border border-success-100/50 dark:border-success-900/20 text-default-700 w-full">
+                <strong className="block text-xs font-bold uppercase tracking-wide text-success mb-1">
+                  Proposed Solution:
+                </strong>
+                <p className="leading-relaxed">{proposedSolution}</p>
+              </div>
+            )}
+
+            {targetAudience && (
+              <p className="text-xs font-medium text-default-400 mt-1">
+                <span className="font-bold text-default-500">
+                  Target Audience:
+                </span>{" "}
+                {targetAudience}
+              </p>
+            )}
+          </div>
+
+          {/* Footer Section */}
+          <div className="mt-auto flex w-full flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between p-0 pt-4 border-t border-default-200/40 dark:border-default-100/20">
+            <div className="flex flex-col gap-2">
+              {estimatedBudget && (
+                <div className="flex">
+                  <span className="text-xs font-bold text-success bg-success-50 dark:bg-success-950/30 px-2.5 py-1 rounded-md">
+                    Budget: {estimatedBudget}
+                  </span>
+                </div>
+              )}
+
+              {tags && tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 my-1">
+                  {tags.map((tag, i) => (
+                    <span
+                      key={i}
+                      className="text-xs font-semibold text-default-600 bg-default-100/80 px-2 py-0.5 rounded-full"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <InteractionButton
+              ideaData={{ _id, ideaTitle, category, tags, estimatedBudget }}
+            />
+          </div>
+        </div>
+      </Card>
     </div>
   );
 };
 
-export default IdeaDetailsPage;
+export default IdeaDetails;

@@ -69,15 +69,13 @@ const Nav = () => {
   const links = [
     { name: "Home", path: "/" },
     { name: "Ideas", path: "/ideas" },
-    { name: "Add Idea", path: "/addidea" },
-    { name: "My Ideas", path: "/my-ideas" },
-    { name: "My Interactions", path: "/my-interactions" },
-    // ...(user//   ? [
-
-    // ]
-    // :
-    // []
-    // )
+    ...(user
+      ? [
+          { name: "Add Idea", path: "/addidea" },
+          { name: "My Ideas", path: "/my-ideas" },
+          { name: "My Interactions", path: "/my-interactions" },
+        ]
+      : []),
   ];
 
   const handleSignOut = async () => {

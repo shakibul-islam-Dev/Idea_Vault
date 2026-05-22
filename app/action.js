@@ -39,7 +39,6 @@ export async function logUserAction(userId, action, details) {
       details: details || {},
       timestamp: new Date(),
     });
-    console.log("Database Insert");
   } catch (err) {
     console.error("Database Error", err);
   }
@@ -68,10 +67,6 @@ export async function getIdeasAction(query = "", category = "") {
   try {
     const { db } = await getDb();
 
-    console.log("---- Debug Info ----");
-    console.log("Search Query:", query);
-    console.log("Selected Category:", category);
-
     let filter = { userId: session.user.id };
     let conditions = [];
 
@@ -96,11 +91,7 @@ export async function getIdeasAction(query = "", category = "") {
       filter.$and = conditions;
     }
 
-    console.log("MongoDB Filter:", JSON.stringify(filter, null, 2));
-
     const ideas = await db.collection("IdeaVaults").find(filter).toArray();
-
-    console.log("Found Items:", ideas.length);
 
     return JSON.parse(JSON.stringify(ideas));
   } catch (error) {
