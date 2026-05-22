@@ -10,7 +10,7 @@ import { Button } from "@heroui/react";
 import Link from "next/link";
 import Image from "next/image";
 
-const Sliders = () => {
+const Sliders = ({ initialSlides }) => {
   const [slidesData, setSlidesData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,22 +31,28 @@ const Sliders = () => {
 
     fetchSliders();
   }, [serverUrl]);
-
-  if (loading) {
-    return (
-      <div className="w-full h-[600px] bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  if (slidesData.length === 0) {
+  if (!initialSlides || initialSlides.length === 0) {
     return (
       <div className="w-full h-[600px] bg-gray-900 flex items-center justify-center text-white">
         No slides available.
       </div>
     );
   }
+  // if (loading) {
+  //   return (
+  //     <div className="w-full h-[600px] bg-gray-900 flex items-center justify-center">
+  //       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+  //     </div>
+  //   );
+  // }
+
+  // if (slidesData.length === 0) {
+  //   return (
+  //     <div className="w-full h-[600px] bg-gray-900 flex items-center justify-center text-white">
+  //       No slides available.
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="w-full h-[600px] relative bg-gray-900 group custom-swiper-container">
@@ -59,7 +65,7 @@ const Sliders = () => {
         loop={true}
         className="h-full"
       >
-        {slidesData.map((slide) => (
+        {initialSlides.map((slide) => (
           <SwiperSlide
             key={slide._id || slide.id}
             className="relative w-full h-full"
