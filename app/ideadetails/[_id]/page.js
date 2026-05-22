@@ -8,7 +8,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
-import { CommentSystem } from "./CommentSystem";
+import { CommentSystem } from "./CommentSection";
 export const metadata = {
   title: "Idea DetailsPage",
   description: "Idea DetailsPage.",

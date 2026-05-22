@@ -1,13 +1,15 @@
-import Idea from "@/Components/Idea/Idea";
-export const metadata = {
-  title: "Idea",
-  description: "This is Idea.",
-};
+import SearchIdea from "@/Components/SearchIdea/SearchIdea";
+import IdeaContainer from "@/Components/IdeaContainer/IdeaContainer";
 
-export default function Home() {
+export default async function Home({ searchParams }) {
+  const resolvedParams = await searchParams;
+  const query = resolvedParams?.q || "";
+  const category = resolvedParams?.category || "";
+
   return (
-    <main className="min-h-screen p-10">
-      <Idea></Idea>
+    <main className="container mx-auto py-10 px-4">
+      <SearchIdea />
+      <IdeaContainer query={query} category={category} />
     </main>
   );
 }

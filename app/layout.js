@@ -1,7 +1,6 @@
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import { ToastContainer, toast } from "react-toastify";
 import Nav from "@/Components/Nav/Nav";
-// Real relative path use kora holo jeno Turbopack exact direction pay
 
 import Footer from "@/Components/Footer/Footer";
 import "./globals.css";
@@ -35,8 +34,13 @@ export default function RootLayout({ children }) {
       className={`${poppins.variable} ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="bg-white text-black dark:bg-[#0a0c10] dark:text-gray-200 transition-colors duration-300  flex flex-col font-sans">
-        <ThemeProvider>
+      <body className={poppins.className}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
           <Nav />
           <main className="flex-1 w-full"> {children} </main>
           <Footer />

@@ -5,7 +5,7 @@ import {
   addComment,
   updateComment,
   deleteComment,
-} from "@/app/ideadetails/[_id]/CommentSystem";
+} from "@/app/ideadetails/[_id]/CommentSection";
 
 export default function CommentUI({
   initialComments = [],

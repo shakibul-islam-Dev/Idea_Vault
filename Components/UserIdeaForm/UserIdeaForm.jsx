@@ -1,6 +1,5 @@
 "use client";
 
-import { authClient } from "@/lib/auth-client";
 import { FloppyDisk } from "@gravity-ui/icons";
 import {
   Button,
@@ -14,17 +13,15 @@ import {
   TextArea,
   TextField,
 } from "@heroui/react";
-import React, { useState } from "react";
+import React from "react";
 
 export function OnSurface() {
-  const [value, setValue] = useState();
-  //user information
-  const { data: session } = authClient.useSession();
-  const user = session?.user;
   const onSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const data = {};
+
+    // Convert FormData to plain object
     formData.forEach((value, key) => {
       data[key] = value.toString();
     });

@@ -71,7 +71,7 @@ const Nav = () => {
     { name: "Ideas", path: "/ideas" },
     ...(user
       ? [
-          { name: "Add Idea", path: "/add-idea" },
+          { name: "Add Idea", path: "/addidea" },
           { name: "My Ideas", path: "/my-ideas" },
           { name: "My Interactions", path: "/my-interactions" },
         ]

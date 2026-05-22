@@ -21,11 +21,8 @@ const IdeaDetailsPage = ({ params: paramsPromise }) => {
     );
   }, [paramsPromise]);
 
-  // Fetch Idea and Comments
   useEffect(() => {
     if (!params?.id) return;
-
-    // Idea Fetching
     fetch(`${serverUrl}/api/idea/${params.id}`)
       .then((res) => res.json())
       .then((data) => {
@@ -37,7 +34,6 @@ const IdeaDetailsPage = ({ params: paramsPromise }) => {
         setLoading(false);
       });
 
-    // Comments Fetching
     fetch(`${serverUrl}/api/comments`)
       .then((res) => res.json())
       .then((data) => {
@@ -115,74 +111,14 @@ const IdeaDetailsPage = ({ params: paramsPromise }) => {
       </div>
 
       {/* Comment Section */}
-      <div className="mt-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
-          Discussion ({comments.length})
-        </h2>
-        <textarea
-          value={commentText}
-          onChange={(e) => setCommentText(e.target.value)}
-          className="w-full bg-slate-50 dark:bg-slate-800 border dark:border-slate-700 rounded-2xl p-4 text-slate-900 dark:text-white"
-        />
-        <button
-          onClick={handleAddComment}
-          className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-xl"
-        >
-          Post Comment
-        </button>
-
-        <div className="space-y-6 mt-8">
-          {comments.map((comment) => (
-            <div
-              key={comment._id}
-              className="border-b dark:border-slate-700 pb-4"
-            >
-              <div className="flex justify-between">
-                <h3 className="font-bold dark:text-white">
-                  {comment.userName}
-                </h3>
-                {comment.userName === currentUser && (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setEditingId(comment._id);
-                        setEditText(comment.text);
-                      }}
-                      className="text-blue-500 text-sm"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(comment._id)}
-                      className="text-red-500 text-sm"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                )}
-              </div>
-              {editingId === comment._id ? (
-                <div>
-                  <textarea
-                    value={editText}
-                    onChange={(e) => setEditText(e.target.value)}
-                    className="w-full bg-slate-800 p-2 text-white"
-                  />
-                  <button
-                    onClick={() => handleSaveEdit(comment._id)}
-                    className="bg-green-600 text-white px-2 py-1 mt-1 text-sm"
-                  >
-                    Save
-                  </button>
-                </div>
-              ) : (
-                <p className="text-slate-700 dark:text-slate-300">
-                  {comment.text}
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
+      <div className="border p-6 rounded-2xl bg-white dark:bg-slate-900">
+        <h1 className="text-2xl font-bold">{idea.title || idea.ideaTitle}</h1>
+        <p className="text-gray-500 my-2">
+          {idea.shortDesc || idea.shortDescription}
+        </p>
+        <p className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl mt-3">
+          {idea.problemStatement}
+        </p>
       </div>
     </div>
   );

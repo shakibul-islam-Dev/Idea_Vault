@@ -1,15 +1,14 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay, EffectFade } from "swiper/modules";
-
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/effect-fade";
 import { Button } from "@heroui/react";
 import Link from "next/link";
+import Image from "next/image";
 
 const Sliders = () => {
   const [slidesData, setSlidesData] = useState([]);
@@ -65,12 +64,18 @@ const Sliders = () => {
             key={slide._id || slide.id}
             className="relative w-full h-full"
           >
-            {/* Background Image with Overlay */}
-            <div
-              className="absolute inset-0 bg-cover bg-center transition-transform duration-[5000ms] scale-105"
-              style={{ backgroundImage: `url(${slide.imageUrl})` }}
-            >
-              <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"></div>
+            {/* Background Image with Next/Image */}
+            <div className="absolute inset-0 transition-transform duration-[5000ms] scale-105">
+              <Image
+                src={slide.imageUrl}
+                alt={slide.ideaTitle || "Slider Background"}
+                fill
+                sizes="100vw"
+                className="object-cover object-center"
+                priority
+              />
+              {/* Overlay */}
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] z-0"></div>
             </div>
 
             {/* Content Container */}
