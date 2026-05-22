@@ -3,39 +3,23 @@
 import { useState } from "react";
 import { Toaster, toast } from "sonner";
 import { Rocket, Send } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
 import { DateField, Label } from "@heroui/react";
 import { getLocalTimeZone } from "@internationalized/date";
+import { submitIdeaAction } from "@/app/action";
 
-export default function SubmitIdeaForm(params) {
+export default function SubmitIdeaForm() {
   const [loading, setLoading] = useState(false);
   const [value, setValue] = useState(null);
-  const selectedDate = value ? value.toDate(getLocalTimeZone()) : null;
-
-  //user information
-  const { data: session } = authClient.useSession();
-  const user = session?.user;
 
   async function handleSubmit(formData) {
     setLoading(true);
-    const data = Object.fromEntries(formData.entries());
-
-    const finalData = {
-      ...data,
-      userId: user?.id,
-      date: value ? value.toDate(getLocalTimeZone()).toISOString() : null,
-    };
-    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
     try {
-      const response = await fetch(`${serverUrl}/api/idea`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(finalData),
-      });
-
-      if (response.ok) {
-        toast.success("Idea submitted successfully!");
+      if (value) {
+        formData.append("date", value.toDate(getLocalTimeZone()).toISOString());
       }
+
+      await submitIdeaAction(formData);
+      toast.success("Idea submitted successfully!");
     } catch (error) {
       toast.error("Failed to submit");
     } finally {
@@ -46,7 +30,6 @@ export default function SubmitIdeaForm(params) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black py-12 px-4">
       <Toaster position="top-right" richColors />
-
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold mb-6 dark:text-white flex items-center gap-2">
           <Rocket className="text-blue-600" /> Submit Startup Idea
@@ -56,7 +39,6 @@ export default function SubmitIdeaForm(params) {
           action={handleSubmit}
           className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm space-y-5"
         >
-          {/* Row 1 */}
           <div>
             <label className="block text-sm font-medium mb-1 dark:text-gray-300">
               Idea Title
@@ -64,11 +46,10 @@ export default function SubmitIdeaForm(params) {
             <input
               name="title"
               required
-              className="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          {/* Row 2 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1 dark:text-gray-300">
@@ -78,7 +59,7 @@ export default function SubmitIdeaForm(params) {
                 name="shortDesc"
                 required
                 rows={2}
-                className="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 outline-none"
+                className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none"
               />
             </div>
             <div>
@@ -87,7 +68,7 @@ export default function SubmitIdeaForm(params) {
               </label>
               <select
                 name="category"
-                className="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 outline-none"
+                className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none"
               >
                 <option value="tech">Tech</option>
                 <option value="health">Health</option>
@@ -97,7 +78,6 @@ export default function SubmitIdeaForm(params) {
             </div>
           </div>
 
-          {/* Row 3 */}
           <div>
             <label className="block text-sm font-medium mb-1 dark:text-gray-300">
               Detailed Description
@@ -106,11 +86,10 @@ export default function SubmitIdeaForm(params) {
               name="detailedDesc"
               required
               rows={4}
-              className="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 outline-none"
+              className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none"
             />
           </div>
 
-          {/* Row 4 */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1 dark:text-gray-300">
@@ -118,8 +97,7 @@ export default function SubmitIdeaForm(params) {
               </label>
               <input
                 name="tags"
-                className="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 outline-none"
-                placeholder="AI, SaaS"
+                className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none"
               />
             </div>
             <div>
@@ -129,12 +107,11 @@ export default function SubmitIdeaForm(params) {
               <input
                 name="budget"
                 type="number"
-                className="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 outline-none"
+                className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none"
               />
             </div>
           </div>
 
-          {/* Row 5 */}
           <div>
             <label className="block text-sm font-medium mb-1 dark:text-gray-300">
               Image URL
@@ -142,7 +119,7 @@ export default function SubmitIdeaForm(params) {
             <input
               name="imageUrl"
               type="url"
-              className="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 outline-none"
+              className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none"
             />
           </div>
 
@@ -152,7 +129,7 @@ export default function SubmitIdeaForm(params) {
             </label>
             <input
               name="audience"
-              className="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 outline-none"
+              className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none"
             />
           </div>
 
@@ -164,7 +141,7 @@ export default function SubmitIdeaForm(params) {
               name="problem"
               required
               rows={3}
-              className="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 outline-none"
+              className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none"
             />
           </div>
 
@@ -176,10 +153,11 @@ export default function SubmitIdeaForm(params) {
               name="solution"
               required
               rows={3}
-              className="w-full p-3 rounded-lg border dark:bg-zinc-800 dark:border-zinc-700 outline-none"
+              className="w-full p-3 rounded-lg border dark:bg-zinc-800 outline-none"
             />
           </div>
-          <DateField value={value} onChange={setValue} className="w-[256px] ">
+
+          <DateField value={value} onChange={setValue} className="w-[256px]">
             <Label>Date</Label>
             <DateField.Group>
               <DateField.Input className="text-white">
@@ -187,9 +165,10 @@ export default function SubmitIdeaForm(params) {
               </DateField.Input>
             </DateField.Group>
           </DateField>
+
           <button
             disabled={loading}
-            className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl transition flex items-center justify-center gap-2"
+            className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2"
           >
             {loading ? (
               "Saving..."

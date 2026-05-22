@@ -128,3 +128,29 @@ export async function deleteActivityAction(formData) {
     console.error("Error deleting activity:", error);
   }
 }
+
+export async function submitIdeaAction(formData) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) throw new Error("Unauthorized");
+
+  const { db } = await getDb();
+
+  const ideaData = {
+    ideaTitle: formData.get("title"),
+    shortDescription: formData.get("shortDesc"),
+    detailedDescription: formData.get("detailedDesc"),
+    category: formData.get("category"),
+    tags: formData.get("tags"),
+    estimatedBudget: formData.get("budget"),
+    imageUrl: formData.get("imageUrl"),
+    audience: formData.get("audience"),
+    problem: formData.get("problem"),
+    solution: formData.get("solution"),
+    date: formData.get("date"),
+    userId: session.user.id,
+    createdAt: new Date(),
+  };
+
+  await db.collection("IdeaVaults").insertOne(ideaData);
+  revalidatePath("/ideas"); // আপনার আইডিয়ার লিস্ট পেজ থাকলে সেটি দিন
+}

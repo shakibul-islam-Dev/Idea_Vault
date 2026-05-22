@@ -34,7 +34,6 @@ export default function SearchIdea() {
 
   return (
     <div className="w-full max-w-2xl mx-auto mb-10 flex flex-col md:flex-row gap-4">
-      {/* Search Input */}
       <input
         type="text"
         placeholder="Search..."
@@ -43,7 +42,6 @@ export default function SearchIdea() {
         className="w-full md:w-2/3 p-4 border rounded-xl focus:outline-none focus:border-slate-900"
       />
 
-      {/* Category Select Field */}
       <select
         defaultValue={searchParams.get("category") || ""}
         onChange={handleCategoryChange}
@@ -51,7 +49,6 @@ export default function SearchIdea() {
       >
         <option value="">All Categories</option>
 
-        {/* এখানে আপনার ডাটাবেসে থাকা ক্যাটাগরিগুলোর নাম হুবহু দিন */}
         <option value="AI">AI</option>
         <option value="Technology">Technology</option>
         <option value="Education">Education</option>

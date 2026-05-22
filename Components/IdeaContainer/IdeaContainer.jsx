@@ -11,6 +11,7 @@ export default async function IdeaContainer({ query, category }) {
       <div className="text-center text-slate-500 py-20">No ideas found.</div>
     );
   }
+  console.log(ideas);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -47,7 +48,7 @@ export default async function IdeaContainer({ query, category }) {
             </h3>
 
             <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mb-4 flex-grow">
-              {idea.shortDescription || idea.content}
+              {idea.shortDescription}
             </p>
 
             {idea.estimatedBudget && (
