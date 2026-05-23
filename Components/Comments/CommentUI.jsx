@@ -1,15 +1,13 @@
 "use client";
-import { authClient } from "@/lib/auth-client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button, TextArea, Input, Alert } from "@heroui/react";
+import { authClient } from "@/lib/auth-client";
 
 export default function CommentUI({
   initialComments = [],
   currentUser = null,
   ideaId,
 }) {
-  const router = useRouter();
   const [comments, setComments] = useState(initialComments);
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
@@ -28,62 +26,88 @@ export default function CommentUI({
     );
   };
 
-  // Better Auth এর কুকি ব্যাকএন্ডে পাঠানোর জন্য এই ফাংশনটি ব্যবহার করা হবে
-  const getFetchOptions = (method, bodyData = null) => {
+  const getFetchOptions = async (method, bodyData = null) => {
+    const session = await authClient.getSession();
+    const token =
+      session?.data?.session?.token || session?.data?.token || session?.token;
+
     const options = {
       method: method,
       headers: {
         "Content-Type": "application/json",
+        Authorization: token ? `Bearer ${token}` : "",
       },
-      credentials: "include", // এটি খুবই গুরুত্বপূর্ণ! এটি কুকি পাঠাবে
+      credentials: "include",
     };
-    if (bodyData) {
-      options.body = JSON.stringify(bodyData);
-    }
+    if (bodyData) options.body = JSON.stringify(bodyData);
     return options;
   };
 
-  // ১. কমেন্ট পোস্ট করা
+  // ১. কমেন্ট পোস্ট
   const handlePostComment = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
+    const commentText = formData.get("comment");
+
+    if (!commentText || !commentText.trim()) {
+      showToast("Comment text cannot be empty.", "danger");
+      return;
+    }
+
+    // কারেন্ট ইউজারের আইডি বের করার মাল্টিপল ফলব্যাক লজিক
+    const currentIdStr =
+      currentUser?.id ||
+      currentUser?._id ||
+      currentUser?.user?.id ||
+      currentUser?.user?._id ||
+      "";
+
     const newComment = {
-      author: formData.get("author") || currentUser?.name || "Anonymous",
-      text: formData.get("comment"),
+      author:
+        currentUser?.name ||
+        currentUser?.user?.name ||
+        formData.get("author") ||
+        "Anonymous",
+      userId: currentIdStr,
+      text: commentText,
       ideaId,
       time: new Date().toLocaleString(),
     };
 
     try {
-      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
       const res = await fetch(
-        `${serverUrl}/api/comments`,
-        getFetchOptions("POST", newComment),
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/comments`,
+        await getFetchOptions("POST", newComment),
       );
 
       if (res.ok) {
         const dbData = await res.json();
-        // ডাটাবেজ থেকে পাওয়া _id নতুন কমেন্টের সাথে যুক্ত করা হচ্ছে
-        const savedComment = { ...newComment, _id: dbData.insertedId };
+        const actualId = dbData.insertedId || dbData._id || dbData.id;
+
+        const savedComment = {
+          ...newComment,
+          _id: actualId,
+        };
 
         setComments([...comments, savedComment]);
         e.target.reset();
         showToast("Posted successfully!", "success");
       } else {
-        showToast("Failed to post comment. (Unauthorized)", "danger");
+        showToast("Unauthorized: Please login.", "danger");
       }
     } catch (error) {
-      showToast("Network error occurred.", "danger");
+      console.error("Comment Post Error:", error);
+      showToast("Network error.", "danger");
     }
   };
 
-  // ২. কমেন্ট আপডেট করা
+  // ২. কমেন্ট আপডেট
   const handleUpdateSave = async (id) => {
+    if (!id) return;
     try {
-      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
       const res = await fetch(
-        `${serverUrl}/api/comments/${id}`,
-        getFetchOptions("PATCH", {
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/comments/${id}`,
+        await getFetchOptions("PATCH", {
           text: editText,
           time: new Date().toLocaleString() + " (Edited)",
         }),
@@ -92,7 +116,7 @@ export default function CommentUI({
       if (res.ok) {
         setComments(
           comments.map((c) =>
-            c._id === id
+            c._id === id || c.id === id
               ? { ...c, text: editText, time: "Just now (Edited)" }
               : c,
           ),
@@ -102,46 +126,45 @@ export default function CommentUI({
       } else {
         showToast("Failed to update.", "danger");
       }
-    } catch (error) {
-      showToast("Network error occurred.", "danger");
+    } catch {
+      showToast("Network error.", "danger");
     }
   };
 
-  // ৩. কমেন্ট ডিলিট করা
+  // ৩. কমেন্ট ডিলিট
   const executeDelete = async () => {
     if (!confirmDeleteId) return;
-
     try {
-      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
       const res = await fetch(
-        `${serverUrl}/api/comments/${confirmDeleteId}`,
-        getFetchOptions("DELETE"),
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/comments/${confirmDeleteId}`,
+        await getFetchOptions("DELETE"),
       );
-
       if (res.ok) {
-        setComments(comments.filter((c) => c._id !== confirmDeleteId));
+        setComments(
+          comments.filter(
+            (c) => c._id !== confirmDeleteId && c.id !== confirmDeleteId,
+          ),
+        );
         setConfirmDeleteId(null);
         showToast("Deleted successfully!", "success");
       } else {
-        showToast("Failed to delete. (Unauthorized)", "danger");
-        setConfirmDeleteId(null);
+        showToast("Failed to delete.", "danger");
       }
     } catch (error) {
-      showToast("Network error occurred.", "danger");
-      setConfirmDeleteId(null);
+      console.error("Delete Comment Error:", error);
+      showToast("Network error.", "danger");
     }
   };
 
   return (
-    <div className="container mx-auto my-10 p-6 bg-white dark:bg-gray-950 rounded-xl border border-gray-200 dark:border-gray-800 transition-colors">
-      {/* Toast Notification */}
+    <div className="container mx-auto my-10 p-6 bg-white dark:bg-gray-950 rounded-xl border">
       {toast.show && (
         <div className="fixed top-5 right-5 z-50">
           <Alert color={toast.type} title={toast.message} />
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation */}
       {confirmDeleteId && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl max-w-sm w-full">
@@ -164,70 +187,100 @@ export default function CommentUI({
 
       <h3 className="text-xl font-bold mb-6">Comments ({comments.length})</h3>
 
-      {/* Comment Form */}
       <form onSubmit={handlePostComment} className="flex flex-col gap-4 mb-8">
-        <Input name="author" label="Name" defaultValue={currentUser?.name} />
+        <Input
+          name="author"
+          label="Name"
+          defaultValue={currentUser?.name || currentUser?.user?.name}
+        />
         <TextArea name="comment" label="Write a Comment..." />
         <Button type="submit" color="primary">
           Post Comment
         </Button>
       </form>
 
-      {/* Comments List */}
       <div className="flex flex-col gap-4">
-        {comments.map((c) => (
-          <div
-            key={c._id}
-            className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-900"
-          >
-            {editingId === c._id ? (
-              <div className="flex flex-col gap-2">
-                <TextArea
-                  value={editText}
-                  onChange={(e) => setEditText(e.target.value)}
-                />
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    color="success"
-                    onPress={() => handleUpdateSave(c._id)}
-                  >
-                    Save
-                  </Button>
-                  <Button size="sm" onPress={() => setEditingId(null)}>
-                    Cancel
-                  </Button>
+        {comments.map((c, index) => {
+          const commentId = c._id || c.id;
+
+          // ফিক্সড কন্ডিশন: currentUser এর ভেতরের সব সম্ভাব্য আইডি পাথ চেক করা হচ্ছে
+          const currentUserIdStr = String(
+            currentUser?.id ||
+              currentUser?._id ||
+              currentUser?.user?.id ||
+              currentUser?.user?._id ||
+              "",
+          ).trim();
+
+          const commentUserIdStr = String(c.userId || "").trim();
+
+          // ফুলপ্রুফ ওনারশিপ চেক
+          const isOwner =
+            currentUserIdStr &&
+            commentUserIdStr &&
+            currentUserIdStr === commentUserIdStr;
+
+          return (
+            <div
+              key={commentId || index}
+              className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-900"
+            >
+              {editingId === commentId ? (
+                <div className="flex flex-col gap-2">
+                  <TextArea
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      color="success"
+                      onPress={() => handleUpdateSave(commentId)}
+                    >
+                      Save
+                    </Button>
+                    <Button size="sm" onPress={() => setEditingId(null)}>
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <>
-                <p className="font-bold text-sm">{c.author}</p>
-                <p className="text-xs text-gray-500 mb-2">{c.time}</p>
-                <p className="mb-3">{c.text}</p>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="light"
-                    onPress={() => {
-                      setEditingId(c._id);
-                      setEditText(c.text);
-                    }}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="light"
-                    color="danger"
-                    onPress={() => setConfirmDeleteId(c._id)}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
-        ))}
+              ) : (
+                <>
+                  <div className="flex justify-between items-center mb-1">
+                    <p className="font-bold text-sm">{c.author}</p>
+                    <span className="text-xs text-gray-400">{c.time}</span>
+                  </div>
+                  <p className="mb-3 text-sm text-gray-700 dark:text-gray-300">
+                    {c.text}
+                  </p>
+
+                  {isOwner && (
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        size="sm"
+                        variant="flat"
+                        onPress={() => {
+                          setEditingId(commentId);
+                          setEditText(c.text);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="flat"
+                        color="danger"
+                        onPress={() => setConfirmDeleteId(commentId)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

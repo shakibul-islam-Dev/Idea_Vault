@@ -9,6 +9,7 @@ import { FaRegEdit } from "react-icons/fa";
 import Link from "next/link";
 
 export default function MyIdeas({ initialIdeas }) {
+  console.log(initialIdeas);
   const [ideas, setIdeas] = useState(initialIdeas || []);
   const [selectedIdea, setSelectedIdea] = useState(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);

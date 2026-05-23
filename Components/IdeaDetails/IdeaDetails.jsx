@@ -7,6 +7,7 @@ const IdeaDetails = ({ idea }) => {
   const {
     _id,
     ideaTitle,
+    title,
     detailedDescription,
     category,
     tags,

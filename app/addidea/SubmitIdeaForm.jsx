@@ -15,27 +15,41 @@ export default function SubmitIdeaForm() {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const formData = new FormData(e.currentTarget);
-      const formPayload = Object.fromEntries(formData);
+    const formElement = e.currentTarget;
 
-      // ক্যালেন্ডার বা ডেট পিকারের ভ্যালু হ্যান্ডেল করা
+    try {
+      const formData = new FormData(formElement);
+      const rawPayload = Object.fromEntries(formData);
+      console.log(rawPayload);
+      const formPayload = {
+        title: rawPayload.title,
+        ideaTitle: rawPayload.title,
+        shortDescription: rawPayload.shortDesc,
+        content: rawPayload.detailedDesc,
+        category: rawPayload.category,
+        tags: rawPayload.tags,
+        budget: rawPayload.budget,
+        imageUrl: rawPayload.imageUrl,
+        audience: rawPayload.audience,
+        problem: rawPayload.problem,
+        solution: rawPayload.solution,
+      };
       if (value) {
         formPayload.date = value.toDate(getLocalTimeZone()).toISOString();
       }
 
-      // ১. সেশন থেকে ইউজার ডেটা নেওয়া
+      // 1. Get user data from session
       const { data } = await authClient.getSession();
 
       if (!data?.user?.id) {
         throw new Error("User not authenticated. Please login.");
       }
 
-      // ২. এখানে userId যুক্ত করা (সবচেয়ে গুরুত্বপূর্ণ ধাপ)
+      // 2. Attach user identifiers
       formPayload.userId = data.user.id;
       const token = data?.session?.token;
 
-      // ৩. রিকোয়েস্ট পাঠানো
+      // 3. Dispatch the network payload
       const response = await fetch("http://localhost:5000/api/idea", {
         method: "POST",
         headers: {
@@ -52,6 +66,8 @@ export default function SubmitIdeaForm() {
       }
 
       toast.success("Idea submitted successfully!");
+      formElement.reset();
+      setValue(null);
     } catch (error) {
       console.error("Submission Error:", error.message);
       toast.error(error.message);

@@ -6,51 +6,65 @@ import { authClient } from "@/lib/auth-client";
 
 export default function Dashboard() {
   const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  // অ্যাক্টিভিটি ফেচ করার ফাংশন
   const fetchActivities = async () => {
     try {
+      setLoading(true);
       const session = await authClient.getSession();
-      const token = session?.data?.token;
-      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
-      const res = await fetch(`${serverUrl}/api/activity`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      console.log(res);
 
-      if (!res.ok) throw new Error("Failed to fetch");
+      // ফিক্সড: Better Auth এর সঠিক টোকেন পাথ চেক
+      const token =
+        session?.data?.session?.token || session?.data?.token || session?.token;
+      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
+
+      const res = await fetch(`${serverUrl}/api/activity`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: "include", // ফিক্সড: কুকি সেশন পাস করার জন্য
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch activities");
+
       const data = await res.json();
       setActivities(data);
     } catch (err) {
       console.error("Detailed Fetch Error:", err);
+    } finally {
+      setLoading(false);
     }
   };
-  useEffect(() => {
-    const load = async () => {
-      await fetchActivities();
-    };
 
-    load();
+  // প্রথমবার পেজ লোড হলে ডাটা আসবে
+  useEffect(() => {
+    fetchActivities();
   }, []);
 
+  // অ্যাক্টিভিটি ডিলিট করার ফাংশন
   const handleDelete = async (id) => {
     try {
       const session = await authClient.getSession();
-      const token = session?.data?.token;
+      const token =
+        session?.data?.session?.token || session?.data?.token || session?.token;
       const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
 
-      const res = await fetch(`${serverUrl}/api/activity/${_id}`, {
+      const res = await fetch(`${serverUrl}/api/activity/${id}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
+        credentials: "include", // ফিক্সড: কুকি সেশন পাস করার জন্য
       });
 
       if (res.ok) {
         setActivities((prev) => prev.filter((a) => a._id !== id));
       } else {
-        alert("Delete failed: Unauthorized");
+        alert("Delete failed: Unauthorized or Bad Request");
       }
     } catch (err) {
       console.error("Delete failed", err);
@@ -63,12 +77,15 @@ export default function Dashboard() {
         Recent Activities
       </h2>
 
-      {activities.length === 0 ? (
+      {loading ? (
+        <p className="text-slate-500 text-center py-10">
+          Loading activities...
+        </p>
+      ) : activities.length === 0 ? (
         <p className="text-slate-500 text-center py-10">No activities found.</p>
       ) : (
         <div className="space-y-4">
           {activities.map((activity) => {
-            const dateObj = new Date(activity.timestamp);
             return (
               <div
                 key={activity._id}
@@ -86,11 +103,16 @@ export default function Dashboard() {
                       {activity.details.text}&ldquo;
                     </p>
                   )}
+                  {activity.timestamp && (
+                    <span className="text-xs text-gray-400 block mt-2">
+                      {new Date(activity.timestamp).toLocaleString()}
+                    </span>
+                  )}
                 </div>
 
                 <Button
-                  onClick={() => handleDelete(activity._id)}
-                  className="absolute top-5 right-5 p-2 text-slate-400 hover:text-red-500 rounded-full"
+                  onPress={() => handleDelete(activity._id)} // ফিক্সড: onClick কে HeroUI অনুযায়ী onPress করা হলো
+                  className="absolute top-5 right-5 p-2 min-w-0 bg-transparent text-slate-400 hover:text-red-500 rounded-full"
                   title="Delete this log"
                 >
                   🗑️

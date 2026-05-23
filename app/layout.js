@@ -1,7 +1,7 @@
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Nav from "@/Components/Nav/Nav";
-
 import Footer from "@/Components/Footer/Footer";
 import "./globals.css";
 import ThemeProvider from "@/Components/ThemeProvider/ThemeProvider";
@@ -34,15 +34,24 @@ export default function RootLayout({ children }) {
       className={`${poppins.variable} ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className={poppins.className}>
+      <body
+        className={`${poppins.className} flex flex-col min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors duration-200`}
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
+          <ToastContainer
+            theme="colored"
+            position="top-right"
+            autoClose={3000}
+          />
+
           <Nav />
-          <main className="flex-1 w-full"> {children} </main>
+
+          <main className="flex-grow w-full">{children}</main>
           <Footer />
         </ThemeProvider>
       </body>
