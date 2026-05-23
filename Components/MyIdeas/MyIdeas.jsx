@@ -24,9 +24,10 @@ export default function MyIdeas({ initialIdeas }) {
   const handleHide = async () => {
     if (!selectedIdea) return;
     setLoading(true);
+    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
     try {
       const response = await fetch(
-        `http://localhost:5000/api/idea/${selectedIdea._id}`,
+        `${serverUrl}/api/idea/${selectedIdea._id}`,
         {
           method: "DELETE",
         },
@@ -47,11 +48,12 @@ export default function MyIdeas({ initialIdeas }) {
   };
 
   const handleUpdate = async () => {
+    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
     if (!selectedIdea) return;
     setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:5000/api/idea/${selectedIdea._id}`,
+        `${serverUrl}/api/idea/${selectedIdea._id}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
