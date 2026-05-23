@@ -7,28 +7,19 @@ import Link from "next/link";
 
 export default function IdeaContainer({ query, category }) {
   const [ideas, setIdeas] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    // এক্সপ্রেস ব্যাকএন্ডে রিকোয়েস্ট পাঠানো
     fetch(
-      `${process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000"}/api/idea?search=${query}&category=${category}`,
+      `${process.env.NEXT_PUBLIC_SERVER_URL}/api/idea?search=${query}&category=${category}`,
     )
       .then((res) => res.json())
       .then((data) => {
         setIdeas(data);
-        setLoading(false);
       })
       .catch((err) => {
         console.error("Error fetching ideas:", err);
-        setLoading(false);
       });
   }, [query, category]);
-
-  if (loading) {
-    return <div className="text-center py-20">Loading ideas...</div>;
-  }
 
   if (ideas.length === 0) {
     return (

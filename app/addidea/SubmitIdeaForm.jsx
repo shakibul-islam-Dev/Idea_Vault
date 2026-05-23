@@ -12,32 +12,49 @@ export default function SubmitIdeaForm() {
   const [value, setValue] = useState(null);
 
   async function handleSubmit(e) {
-    e.preventDefault(); // ফর্ম রিলোড হওয়া আটকান
+    e.preventDefault();
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    if (value) {
-      formData.append("date", value.toDate(getLocalTimeZone()).toISOString());
-    }
-
     try {
-      // Better Auth থেকে সেশন এবং টোকেন নিন
-      const { data: session } = await authClient.getSession();
+      const formData = new FormData(e.currentTarget);
+      const formPayload = Object.fromEntries(formData);
 
+      // ক্যালেন্ডার বা ডেট পিকারের ভ্যালু হ্যান্ডেল করা
+      if (value) {
+        formPayload.date = value.toDate(getLocalTimeZone()).toISOString();
+      }
+
+      // ১. সেশন থেকে ইউজার ডেটা নেওয়া
+      const { data } = await authClient.getSession();
+
+      if (!data?.user?.id) {
+        throw new Error("User not authenticated. Please login.");
+      }
+
+      // ২. এখানে userId যুক্ত করা (সবচেয়ে গুরুত্বপূর্ণ ধাপ)
+      formPayload.userId = data.user.id;
+      const token = data?.session?.token;
+
+      // ৩. রিকোয়েস্ট পাঠানো
       const response = await fetch("http://localhost:5000/api/idea", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-
-          Authorization: `Bearer ${session?.token}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(Object.fromEntries(formData)),
+        body: JSON.stringify(formPayload),
       });
 
-      if (!response.ok) throw new Error("Submission failed");
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.message || result.error || "Submission failed");
+      }
+
       toast.success("Idea submitted successfully!");
     } catch (error) {
-      toast.error("Failed to submit. Check console.");
+      console.error("Submission Error:", error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }

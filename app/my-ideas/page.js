@@ -11,11 +11,9 @@ export const metadata = {
   description: "My Ideas.",
 };
 
+// MyIdeasPage.js
 async function getIdeas() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
+  const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) return [];
 
   const client = await MongoClient.connect(process.env.MONGODB_URI);
@@ -31,6 +29,7 @@ async function getIdeas() {
 
 export default async function MyIdeasPage() {
   const ideas = await getIdeas();
+  console.log("Data passed to child:", ideas);
 
   return (
     <div className="min-h-screen flex flex-col items-center py-6 w-full">

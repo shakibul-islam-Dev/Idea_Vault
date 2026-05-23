@@ -55,8 +55,9 @@ export default function CommentUI({
     };
 
     try {
+      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
       const res = await fetch(
-        "http://localhost:5000/api/comments",
+        `${serverUrl}/api/comments`,
         getFetchOptions("POST", newComment),
       );
 
@@ -79,8 +80,9 @@ export default function CommentUI({
   // ২. কমেন্ট আপডেট করা
   const handleUpdateSave = async (id) => {
     try {
+      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
       const res = await fetch(
-        `http://localhost:5000/api/comments/${id}`,
+        `${serverUrl}/api/comments/${id}`,
         getFetchOptions("PATCH", {
           text: editText,
           time: new Date().toLocaleString() + " (Edited)",
@@ -110,8 +112,9 @@ export default function CommentUI({
     if (!confirmDeleteId) return;
 
     try {
+      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
       const res = await fetch(
-        `http://localhost:5000/api/comments/${confirmDeleteId}`,
+        `${serverUrl}/api/comments/${confirmDeleteId}`,
         getFetchOptions("DELETE"),
       );
 
