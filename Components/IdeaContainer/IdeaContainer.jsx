@@ -1,10 +1,34 @@
-import { getIdeasAction } from "@/app/action";
+"use client"; // এটি এখন ক্লায়েন্ট কম্পোনেন্ট হবে
+
+import { useState, useEffect } from "react";
 import { Button } from "@heroui/react";
 import Image from "next/image";
 import Link from "next/link";
 
-export default async function IdeaContainer({ query, category }) {
-  const ideas = await getIdeasAction(query, category);
+export default function IdeaContainer({ query, category }) {
+  const [ideas, setIdeas] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    // এক্সপ্রেস ব্যাকএন্ডে রিকোয়েস্ট পাঠানো
+    fetch(
+      `${process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000"}/api/idea?search=${query}&category=${category}`,
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setIdeas(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching ideas:", err);
+        setLoading(false);
+      });
+  }, [query, category]);
+
+  if (loading) {
+    return <div className="text-center py-20">Loading ideas...</div>;
+  }
 
   if (ideas.length === 0) {
     return (
@@ -28,7 +52,7 @@ export default async function IdeaContainer({ query, category }) {
                 src={idea.imageUrl}
                 alt={idea.ideaTitle || "Idea Image"}
                 fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                sizes="(max-width: 768px) 100vw, 33vw"
                 className="object-cover transition-transform duration-500 hover:scale-105"
               />
             ) : (
@@ -36,7 +60,6 @@ export default async function IdeaContainer({ query, category }) {
                 No Image
               </div>
             )}
-
             <span className="absolute top-3 left-3 z-10 bg-black/60 backdrop-blur-md text-white text-[11px] uppercase font-bold px-3 py-1 rounded-full">
               {idea.category || "Uncategorized"}
             </span>
@@ -47,25 +70,12 @@ export default async function IdeaContainer({ query, category }) {
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 line-clamp-1 mb-2">
               {idea.ideaTitle}
             </h3>
-
             <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mb-4 flex-grow">
               {idea.shortDescription}
             </p>
-
-            {idea.estimatedBudget && (
-              <div className="mb-5">
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider">
-                  Est. Budget
-                </span>
-                <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                  {idea.estimatedBudget}
-                </p>
-              </div>
-            )}
-
             {/* Action Button */}
             <Link href={`/ideadetails/${idea._id}`} className="w-full mt-auto">
-              <Button className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-medium py-2.5 rounded-xl transition-all">
+              <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 rounded-xl transition-all">
                 View Details
               </Button>
             </Link>

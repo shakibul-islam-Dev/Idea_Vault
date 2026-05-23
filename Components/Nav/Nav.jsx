@@ -32,6 +32,7 @@ const Nav = () => {
 
   const { data: session } = authClient.useSession();
   const user = session?.user;
+  // console.log(user);
 
   const [profileData, setProfileData] = useState({
     name: "",
@@ -69,13 +70,13 @@ const Nav = () => {
   const links = [
     { name: "Home", path: "/" },
     { name: "Ideas", path: "/ideas" },
-    ...(user
-      ? [
-          { name: "Add Idea", path: "/addidea" },
-          { name: "My Ideas", path: "/my-ideas" },
-          { name: "My Interactions", path: "/my-interactions" },
-        ]
-      : []),
+    // ...(user
+    //   ? [
+    { name: "Add Idea", path: "/addidea" },
+    { name: "My Ideas", path: "/my-ideas" },
+    { name: "My Interactions", path: "/my-interactions" },
+    //   ]
+    // : []),
   ];
 
   const handleSignOut = async () => {

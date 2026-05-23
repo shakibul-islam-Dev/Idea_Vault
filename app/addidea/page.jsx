@@ -5,28 +5,44 @@ import { Toaster, toast } from "sonner";
 import { Rocket, Send } from "lucide-react";
 import { DateField, Label } from "@heroui/react";
 import { getLocalTimeZone } from "@internationalized/date";
-import { submitIdeaAction } from "@/app/action";
+import { authClient } from "@/lib/auth-client";
 
 export default function SubmitIdeaForm() {
   const [loading, setLoading] = useState(false);
   const [value, setValue] = useState(null);
 
-  async function handleSubmit(formData) {
+  async function handleSubmit(e) {
+    e.preventDefault(); // ফর্ম রিলোড হওয়া আটকান
     setLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    if (value) {
+      formData.append("date", value.toDate(getLocalTimeZone()).toISOString());
+    }
+
     try {
-      if (value) {
-        formData.append("date", value.toDate(getLocalTimeZone()).toISOString());
-      }
-      await submitIdeaAction(formData);
+      // Better Auth থেকে সেশন এবং টোকেন নিন
+      const { data: session } = await authClient.getSession();
+
+      const response = await fetch("http://localhost:5000/api/idea", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+
+          Authorization: `Bearer ${session?.token}`,
+        },
+        body: JSON.stringify(Object.fromEntries(formData)),
+      });
+
+      if (!response.ok) throw new Error("Submission failed");
       toast.success("Idea submitted successfully!");
     } catch (error) {
-      toast.error("Failed to submit");
+      toast.error("Failed to submit. Check console.");
     } finally {
       setLoading(false);
     }
   }
 
-  // Common styles for inputs and textareas to support Dark/Light mode
   const fieldStyle =
     "w-full p-3 rounded-lg border bg-white dark:bg-zinc-800 border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-gray-100 outline-none focus:ring-2 focus:ring-blue-500 transition-colors";
 
@@ -39,7 +55,7 @@ export default function SubmitIdeaForm() {
         </h1>
 
         <form
-          action={handleSubmit}
+          onSubmit={handleSubmit}
           className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm space-y-5"
         >
           {/* Idea Title */}

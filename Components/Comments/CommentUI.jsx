@@ -1,12 +1,8 @@
 "use client";
+import { authClient } from "@/lib/auth-client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, TextArea, Input, Alert } from "@heroui/react";
-import {
-  addComment,
-  updateComment,
-  deleteComment,
-} from "@Actions/CommentSection";
 
 export default function CommentUI({
   initialComments = [],
@@ -32,28 +28,105 @@ export default function CommentUI({
     );
   };
 
-  const handleUpdateSave = async (id) => {
-    await updateComment(id, editText, ideaId);
-    setComments(
-      comments.map((c) =>
-        c._id === id
-          ? {
-              ...c,
-              text: editText,
-              time: new Date().toLocaleString() + " (Edited)",
-            }
-          : c,
-      ),
-    );
-    setEditingId(null);
-    showToast("Updated successfully!", "success");
+  // Better Auth এর কুকি ব্যাকএন্ডে পাঠানোর জন্য এই ফাংশনটি ব্যবহার করা হবে
+  const getFetchOptions = (method, bodyData = null) => {
+    const options = {
+      method: method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include", // এটি খুবই গুরুত্বপূর্ণ! এটি কুকি পাঠাবে
+    };
+    if (bodyData) {
+      options.body = JSON.stringify(bodyData);
+    }
+    return options;
   };
 
+  // ১. কমেন্ট পোস্ট করা
+  const handlePostComment = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const newComment = {
+      author: formData.get("author") || currentUser?.name || "Anonymous",
+      text: formData.get("comment"),
+      ideaId,
+      time: new Date().toLocaleString(),
+    };
+
+    try {
+      const res = await fetch(
+        "http://localhost:5000/api/comments",
+        getFetchOptions("POST", newComment),
+      );
+
+      if (res.ok) {
+        const dbData = await res.json();
+        // ডাটাবেজ থেকে পাওয়া _id নতুন কমেন্টের সাথে যুক্ত করা হচ্ছে
+        const savedComment = { ...newComment, _id: dbData.insertedId };
+
+        setComments([...comments, savedComment]);
+        e.target.reset();
+        showToast("Posted successfully!", "success");
+      } else {
+        showToast("Failed to post comment. (Unauthorized)", "danger");
+      }
+    } catch (error) {
+      showToast("Network error occurred.", "danger");
+    }
+  };
+
+  // ২. কমেন্ট আপডেট করা
+  const handleUpdateSave = async (id) => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/comments/${id}`,
+        getFetchOptions("PATCH", {
+          text: editText,
+          time: new Date().toLocaleString() + " (Edited)",
+        }),
+      );
+
+      if (res.ok) {
+        setComments(
+          comments.map((c) =>
+            c._id === id
+              ? { ...c, text: editText, time: "Just now (Edited)" }
+              : c,
+          ),
+        );
+        setEditingId(null);
+        showToast("Updated successfully!", "success");
+      } else {
+        showToast("Failed to update.", "danger");
+      }
+    } catch (error) {
+      showToast("Network error occurred.", "danger");
+    }
+  };
+
+  // ৩. কমেন্ট ডিলিট করা
   const executeDelete = async () => {
-    await deleteComment(confirmDeleteId, ideaId);
-    setComments(comments.filter((c) => c._id !== confirmDeleteId));
-    setConfirmDeleteId(null);
-    showToast("Deleted successfully!", "success");
+    if (!confirmDeleteId) return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/comments/${confirmDeleteId}`,
+        getFetchOptions("DELETE"),
+      );
+
+      if (res.ok) {
+        setComments(comments.filter((c) => c._id !== confirmDeleteId));
+        setConfirmDeleteId(null);
+        showToast("Deleted successfully!", "success");
+      } else {
+        showToast("Failed to delete. (Unauthorized)", "danger");
+        setConfirmDeleteId(null);
+      }
+    } catch (error) {
+      showToast("Network error occurred.", "danger");
+      setConfirmDeleteId(null);
+    }
   };
 
   return (
@@ -67,14 +140,9 @@ export default function CommentUI({
 
       {/* Delete Confirmation Modal */}
       {confirmDeleteId && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-2xl max-w-sm w-full border border-gray-200 dark:border-gray-800">
-            <h4 className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-2">
-              Are you sure?
-            </h4>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-              This action will permanently delete your comment.
-            </p>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl max-w-sm w-full">
+            <h4 className="font-bold text-lg mb-2">Are you sure?</h4>
             <div className="flex gap-3 justify-end">
               <Button
                 size="sm"
@@ -91,34 +159,13 @@ export default function CommentUI({
         </div>
       )}
 
-      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">
-        Comments ({comments.length})
-      </h3>
+      <h3 className="text-xl font-bold mb-6">Comments ({comments.length})</h3>
 
       {/* Comment Form */}
-      <form
-        id="comment-submission-form"
-        action={async (formData) => {
-          formData.append("ideaId", ideaId);
-          await addComment(formData);
-          document.getElementById("comment-submission-form").reset();
-          router.refresh();
-          showToast("Posted successfully!", "success");
-        }}
-        className="flex flex-col gap-4 mb-8"
-      >
-        <Input
-          name="author"
-          label="Name"
-          defaultValue={currentUser?.name}
-          className="dark:text-white"
-        />
-        <TextArea
-          name="comment"
-          label="Write a Comment..."
-          className="dark:text-white"
-        />
-        <Button type="submit" color="primary" className="font-semibold">
+      <form onSubmit={handlePostComment} className="flex flex-col gap-4 mb-8">
+        <Input name="author" label="Name" defaultValue={currentUser?.name} />
+        <TextArea name="comment" label="Write a Comment..." />
+        <Button type="submit" color="primary">
           Post Comment
         </Button>
       </form>
@@ -128,7 +175,7 @@ export default function CommentUI({
         {comments.map((c) => (
           <div
             key={c._id}
-            className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg bg-gray-50 dark:bg-gray-900"
+            className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-900"
           >
             {editingId === c._id ? (
               <div className="flex flex-col gap-2">
@@ -151,15 +198,9 @@ export default function CommentUI({
               </div>
             ) : (
               <>
-                <p className="font-bold text-sm text-gray-900 dark:text-gray-100">
-                  {c.author}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                  {c.time}
-                </p>
-                <p className="mb-3 text-gray-700 dark:text-gray-300">
-                  {c.text}
-                </p>
+                <p className="font-bold text-sm">{c.author}</p>
+                <p className="text-xs text-gray-500 mb-2">{c.time}</p>
+                <p className="mb-3">{c.text}</p>
                 <div className="flex gap-2">
                   <Button
                     size="sm"

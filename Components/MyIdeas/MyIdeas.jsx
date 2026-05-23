@@ -55,9 +55,9 @@ export default function MyIdeas({ initialIdeas }) {
     <section className="w-full max-w-2xl">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Your Ideas</h1>
-        <Button as={Link} href="/add-idea" color="primary">
-          + Add New Idea
-        </Button>
+        <Link href={`/addidea`}>
+          <Button color="primary">+ Add New Idea</Button>
+        </Link>
       </div>
 
       <div className="w-full">
